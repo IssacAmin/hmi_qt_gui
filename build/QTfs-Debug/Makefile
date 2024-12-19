@@ -57,7 +57,10 @@ SOURCES       = ../../main.cpp \
 OBJECTS       = main.o \
 		mainwindow.o \
 		moc_mainwindow.o
-DIST          = /Qt/6.8.1/gcc_64/mkspecs/features/spec_pre.prf \
+DIST          = ../../icons/home.png \
+		../../icons/media.png \
+		../../icons/settings.png \
+		/Qt/6.8.1/gcc_64/mkspecs/features/spec_pre.prf \
 		/Qt/6.8.1/gcc_64/mkspecs/common/unix.conf \
 		/Qt/6.8.1/gcc_64/mkspecs/common/linux.conf \
 		/Qt/6.8.1/gcc_64/mkspecs/common/sanitize.conf \
@@ -1486,7 +1489,6 @@ mainwindow.o: ../../mainwindow.cpp ../../mainwindow.h \
 		../../../Qt/6.8.1/gcc_64/include/QtCore/QDateTime \
 		../../../Qt/6.8.1/gcc_64/include/QtCore/qdatetime.h \
 		../../../Qt/6.8.1/gcc_64/include/QtCore/qcalendar.h \
-		../../../Qt/6.8.1/gcc_64/include/QtGui/QPalette \
 		../../../Qt/6.8.1/gcc_64/include/QtWidgets/QMessageBox \
 		../../../Qt/6.8.1/gcc_64/include/QtWidgets/qmessagebox.h \
 		../../../Qt/6.8.1/gcc_64/include/QtWidgets/qdialog.h \

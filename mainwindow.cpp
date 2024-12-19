@@ -3,7 +3,7 @@
 #include <QDateTime>
 #include <QMessageBox>
 #include <QApplication>
-
+#include <QPainter>
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -47,11 +47,41 @@ QWidget* MainWindow::createNavBar()
 
     QVBoxLayout *layout = new QVBoxLayout(navBar);
 
+    QIcon homeIcon("/home/issac/hmi_gui/icons/home.png");
+    QIcon mediaIcon("/home/issac/hmi_gui/icons/media.png");
+    QIcon settingsIcon("/home/issac/hmi_gui/icons/settings.png");
+
+    QPixmap pixmap1 = homeIcon.pixmap(100, 100);  // Create a pixmap with the icon
+    QPainter painter(&pixmap1);
+    painter.setCompositionMode(QPainter::CompositionMode_SourceIn); // SourceIn will apply color filter
+    painter.fillRect(pixmap1.rect(), QColor(255, 255, 255));  // White color
+    painter.end();
+
+    QPixmap pixmap2 = mediaIcon.pixmap(100, 100);  // Create a pixmap with the icon
+    QPainter painter2(&pixmap2);
+    painter2.setCompositionMode(QPainter::CompositionMode_SourceIn); // SourceIn will apply color filter
+    painter2.fillRect(pixmap2.rect(), QColor(255, 255, 255));  // White color
+    painter2.end();
+
+    QPixmap pixmap3 = settingsIcon.pixmap(100, 100);  // Create a pixmap with the icon
+    QPainter painter3(&pixmap3);
+    painter3.setCompositionMode(QPainter::CompositionMode_SourceIn); // SourceIn will apply color filter
+    painter3.fillRect(pixmap3.rect(), QColor(255, 255, 255));  // White color
+    painter3.end();
     // Create Buttons
 
-    QPushButton *homeButton = new QPushButton("Home");
-    QPushButton *mediaButton = new QPushButton("Media");
-    QPushButton *settingsButton = new QPushButton("Settings");
+    QPushButton *homeButton = new QPushButton();
+    QPushButton *mediaButton = new QPushButton();
+    QPushButton *settingsButton = new QPushButton();
+
+    homeButton->setIcon(QIcon(pixmap1));
+    mediaButton->setIcon(QIcon(pixmap2));
+    settingsButton->setIcon(QIcon(pixmap3));
+
+    // Optional: Set icon size to ensure they fit nicely
+    homeButton->setIconSize(QSize(30, 30));  // Adjust size as needed
+    mediaButton->setIconSize(QSize(30, 30));
+    settingsButton->setIconSize(QSize(30, 30));
 
     // Transparent Button Style
     QString buttonStyle = "QPushButton {"
@@ -60,9 +90,11 @@ QWidget* MainWindow::createNavBar()
                           "  background-color: rgba(66, 66, 66, 180); " // Adds transparency
                           "  color: white; "
                           "  border: none; "
-                          "  border-radius: 15px; "  // Adds rounded borders
+                          "  border-radius: 15px; "
+                          "  text-align: center; "  // Ensure icon is centered
                           "}"
                           "QPushButton:hover { background-color: rgba(97, 97, 97, 200); }";
+
 
 
     homeButton->setStyleSheet(buttonStyle);
@@ -142,7 +174,7 @@ QWidget* MainWindow::createMediaPage()
     layout->addWidget(title);
 
     QString buttonStyle = "QPushButton {"
-                          "  font-size: 18px; "
+                          "  font-size: 25px; "
                           "  padding: 10px; "
                           "  background-color: rgba(66, 66, 66, 180); " // Adds transparency
                           "  color: white; "
@@ -152,7 +184,7 @@ QWidget* MainWindow::createMediaPage()
                           "QPushButton:hover { background-color: rgba(97, 97, 97, 200); }";
 
     QPushButton *playButton = new QPushButton("Play Media");
-    playButton->setFixedSize(200, 50);
+    playButton->setFixedSize(300, 80);
     playButton->setStyleSheet(buttonStyle);
 
     layout->addStretch(1);
@@ -174,7 +206,7 @@ QWidget* MainWindow::createSettingsPage()
     layout->addWidget(title);
 
     QString buttonStyle = "QPushButton {"
-                          "  font-size: 18px; "
+                          "  font-size: 25px; "
                           "  padding: 10px; "
                           "  background-color: rgba(66, 66, 66, 180); " // Adds transparency
                           "  color: white; "
@@ -184,7 +216,7 @@ QWidget* MainWindow::createSettingsPage()
                           "QPushButton:hover { background-color: rgba(97, 97, 97, 200); }";
 
     QPushButton *updateButton = new QPushButton("Check for Updates");
-    updateButton->setFixedSize(200, 50);
+    updateButton->setFixedSize(300, 80);
     updateButton->setStyleSheet(buttonStyle);
 
     connect(updateButton, &QPushButton::clicked, this, &MainWindow::checkForUpdates);
