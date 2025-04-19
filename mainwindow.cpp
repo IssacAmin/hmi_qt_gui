@@ -4,10 +4,31 @@
 #include <QMessageBox>
 #include <QApplication>
 #include <QPainter>
+#include <QVBoxLayout>
+#include <QPushButton>
+#include <QLabel>
+#include <QGridLayout>
+#include <QSpacerItem>
+#include <QIcon>
+#include <QScreen>
+#include <QStackedWidget>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    // Set theme (Dark Modern Look)
+    // Get the screen dimensions
+    QScreen *screen = QGuiApplication::primaryScreen();
+    QRect screenGeometry = screen->geometry();
+    int screenWidth = screenGeometry.width();
+    int screenHeight = screenGeometry.height();
+
+    int windowWidth = screenWidth * 0.8;
+    int windowHeight = screenHeight * 0.8;
+
+    this->resize(windowWidth, windowHeight);
+    this->move((screenWidth - windowWidth) / 2, (screenHeight - windowHeight) / 2); // Center the window
+
+    // Set theme (Navy Blue Background with Gradient & Haze)
     QPalette darkPalette;
     darkPalette.setColor(QPalette::Window, QColor(30, 30, 30));
     darkPalette.setColor(QPalette::WindowText, Qt::white);
@@ -15,243 +36,222 @@ MainWindow::MainWindow(QWidget *parent)
     darkPalette.setColor(QPalette::ButtonText, Qt::white);
     QApplication::setPalette(darkPalette);
 
-    // Central Layout
+    // Central Layout (for Home Page)
     QWidget *centralWidget = new QWidget(this);
-    QHBoxLayout *mainLayout = new QHBoxLayout(centralWidget);
+    QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
 
-    // Navigation Bar
-    mainLayout->addWidget(createNavBar());
+    mainLayout->addSpacing(windowHeight * 0.15);
 
-    // Stack of Pages
+    // Clock Label
+    timeLabel = new QLabel(centralWidget);
+    QFont font("Arial", 36, QFont::Bold);
+    timeLabel->setFont(font);
+    timeLabel->setAlignment(Qt::AlignCenter);
+    timeLabel->setStyleSheet("color: white;");
+    mainLayout->addWidget(timeLabel);
+
+    mainLayout->addSpacing(windowHeight * 0.10);
+
+    // Button Grid
+    QWidget *buttonContainer = new QWidget(centralWidget);
+    QGridLayout *buttonLayout = new QGridLayout(buttonContainer);
+
+    QPushButton *homeButton = createIconButton(":/icons/icons/call.png");
+    QPushButton *mediaButton = createIconButton(":/icons/icons/media.png");
+    QPushButton *settingsButton = createIconButton(":/icons/icons/settings.png");
+    QPushButton *newsButton = createIconButton(":/icons/icons/bluetooth.png");
+    QPushButton *weatherButton = createIconButton(":/icons/icons/weather.png");
+    QPushButton *mapsButton = createIconButton(":/icons/icons/maps.png");
+
+    buttonLayout->addWidget(homeButton, 0, 0);
+    buttonLayout->addWidget(mediaButton, 0, 1);
+    buttonLayout->addWidget(settingsButton, 0, 2);
+    buttonLayout->addWidget(newsButton, 1, 0);
+    buttonLayout->addWidget(weatherButton, 1, 1);
+    buttonLayout->addWidget(mapsButton, 1, 2);
+
+    buttonLayout->setVerticalSpacing(windowHeight * 0.05);
+    buttonLayout->setHorizontalSpacing(0);
+    buttonLayout->setContentsMargins(0, 0, 0, 0);
+
+    buttonContainer->setLayout(buttonLayout);
+    mainLayout->addWidget(buttonContainer);
+
+    mainLayout->addSpacing(windowHeight * 0.40);
+
+    // Home Page
+    QWidget *homePage = new QWidget(this);
+    homePage->setLayout(mainLayout);
+
+    // Media Page
+    QWidget *mediaPage = new QWidget(this);
+    QVBoxLayout *mediaLayout = new QVBoxLayout(mediaPage);
+    mediaLayout->addWidget(new QLabel("Media Page", mediaPage));
+
+    QPushButton *backMediaButton = new QPushButton("Back to Home", mediaPage);
+    mediaLayout->addWidget(backMediaButton);
+    mediaLayout->addStretch();
+    mediaPage->setStyleSheet("color: white; font-size: 24px;");
+
+    // Settings Page
+    QWidget *settingsPage = new QWidget(this);
+    QVBoxLayout *settingsLayout = new QVBoxLayout(settingsPage);
+    settingsLayout->addWidget(new QLabel("Settings Page", settingsPage));
+
+    QPushButton *backSettingsButton = new QPushButton("Back to Home", settingsPage);
+    settingsLayout->addWidget(backSettingsButton);
+    settingsLayout->addStretch();
+    settingsPage->setStyleSheet("color: white; font-size: 24px;");
+
+    // News Page
+    QWidget *newsPage = new QWidget(this);
+    QVBoxLayout *newsLayout = new QVBoxLayout(newsPage);
+    newsLayout->addWidget(new QLabel("News Page", newsPage));
+    QPushButton *backNewsButton = new QPushButton("Back to Home", newsPage);
+    newsLayout->addWidget(backNewsButton);
+    newsLayout->addStretch();
+    newsPage->setStyleSheet("color: white; font-size: 24px;");
+
+    // Weather Page
+    QWidget *weatherPage = new QWidget(this);
+    QVBoxLayout *weatherLayout = new QVBoxLayout(weatherPage);
+    weatherLayout->addWidget(new QLabel("Weather Page", weatherPage));
+    QPushButton *backWeatherButton = new QPushButton("Back to Home", weatherPage);
+    weatherLayout->addWidget(backWeatherButton);
+    weatherLayout->addStretch();
+    weatherPage->setStyleSheet("color: white; font-size: 24px;");
+
+    // Maps Page
+    QWidget *mapsPage = new QWidget(this);
+    QVBoxLayout *mapsLayout = new QVBoxLayout(mapsPage);
+    mapsLayout->addWidget(new QLabel("Maps Page", mapsPage));
+    QPushButton *backMapsButton = new QPushButton("Back to Home", mapsPage);
+    mapsLayout->addWidget(backMapsButton);
+    mapsLayout->addStretch();
+    mapsPage->setStyleSheet("color: white; font-size: 24px;");
+
+    // Stack all pages
     stackedWidget = new QStackedWidget(this);
-    stackedWidget->addWidget(createHomePage());
-    stackedWidget->addWidget(createMediaPage());
-    stackedWidget->addWidget(createSettingsPage());
+    stackedWidget->addWidget(homePage);     // Index 0
+    stackedWidget->addWidget(mediaPage);    // Index 1
+    stackedWidget->addWidget(settingsPage); // Index 2
+    stackedWidget->addWidget(newsPage);     // Index 3
+    stackedWidget->addWidget(weatherPage);  // Index 4
+    stackedWidget->addWidget(mapsPage);     // Index 5
 
-    mainLayout->addWidget(stackedWidget);
+    setCentralWidget(stackedWidget);
 
-    setCentralWidget(centralWidget);
+    // Connect buttons to corresponding pages
+    connect(homeButton, &QPushButton::clicked, this, &MainWindow::goToHomePage);
+    connect(mediaButton, &QPushButton::clicked, this, &MainWindow::showMediaPage);
+    connect(settingsButton, &QPushButton::clicked, this, &MainWindow::showSettingsPage);
+    connect(newsButton, &QPushButton::clicked, this, &MainWindow::showNewsPage);
+    connect(weatherButton, &QPushButton::clicked, this, &MainWindow::showWeatherPage);
+    connect(mapsButton, &QPushButton::clicked, this, &MainWindow::showMapsPage);
 
-    // Timer for Updating Date and Time
+    // Connect back buttons to home page
+    connect(backMediaButton, &QPushButton::clicked, this, &MainWindow::goToHomePage);
+    connect(backSettingsButton, &QPushButton::clicked, this, &MainWindow::goToHomePage);
+    connect(backNewsButton, &QPushButton::clicked, this, &MainWindow::goToHomePage);
+    connect(backWeatherButton, &QPushButton::clicked, this, &MainWindow::goToHomePage);
+    connect(backMapsButton, &QPushButton::clicked, this, &MainWindow::goToHomePage);
+
+    // Timer for DateTime
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &MainWindow::updateDateTime);
     timer->start(1000);
     updateDateTime();
 }
 
-// Navigation Bar on the Left
-QWidget* MainWindow::createNavBar()
-{
-    QWidget *navBar = new QWidget(this);
-    navBar->setFixedWidth(200);
+// Slot implementations for each page
 
-    QVBoxLayout *layout = new QVBoxLayout(navBar);
-
-    QIcon homeIcon("/home/issac/hmi_gui/icons/home.png");
-    QIcon mediaIcon("/home/issac/hmi_gui/icons/media.png");
-    QIcon settingsIcon("/home/issac/hmi_gui/icons/settings.png");
-
-    QPixmap pixmap1 = homeIcon.pixmap(100, 100);  // Create a pixmap with the icon
-    QPainter painter(&pixmap1);
-    painter.setCompositionMode(QPainter::CompositionMode_SourceIn); // SourceIn will apply color filter
-    painter.fillRect(pixmap1.rect(), QColor(255, 255, 255));  // White color
-    painter.end();
-
-    QPixmap pixmap2 = mediaIcon.pixmap(100, 100);  // Create a pixmap with the icon
-    QPainter painter2(&pixmap2);
-    painter2.setCompositionMode(QPainter::CompositionMode_SourceIn); // SourceIn will apply color filter
-    painter2.fillRect(pixmap2.rect(), QColor(255, 255, 255));  // White color
-    painter2.end();
-
-    QPixmap pixmap3 = settingsIcon.pixmap(100, 100);  // Create a pixmap with the icon
-    QPainter painter3(&pixmap3);
-    painter3.setCompositionMode(QPainter::CompositionMode_SourceIn); // SourceIn will apply color filter
-    painter3.fillRect(pixmap3.rect(), QColor(255, 255, 255));  // White color
-    painter3.end();
-    // Create Buttons
-
-    QPushButton *homeButton = new QPushButton();
-    QPushButton *mediaButton = new QPushButton();
-    QPushButton *settingsButton = new QPushButton();
-
-    homeButton->setIcon(QIcon(pixmap1));
-    mediaButton->setIcon(QIcon(pixmap2));
-    settingsButton->setIcon(QIcon(pixmap3));
-
-    // Optional: Set icon size to ensure they fit nicely
-    homeButton->setIconSize(QSize(30, 30));  // Adjust size as needed
-    mediaButton->setIconSize(QSize(30, 30));
-    settingsButton->setIconSize(QSize(30, 30));
-
-    // Transparent Button Style
-    QString buttonStyle = "QPushButton {"
-                          "  font-size: 18px; "
-                          "  padding: 10px; "
-                          "  background-color: rgba(66, 66, 66, 180); " // Adds transparency
-                          "  color: white; "
-                          "  border: none; "
-                          "  border-radius: 15px; "
-                          "  text-align: center; "  // Ensure icon is centered
-                          "}"
-                          "QPushButton:hover { background-color: rgba(97, 97, 97, 200); }";
-
-
-
-    homeButton->setStyleSheet(buttonStyle);
-    mediaButton->setStyleSheet(buttonStyle);
-    settingsButton->setStyleSheet(buttonStyle);
-
-    // Connect Buttons
-    connect(homeButton, &QPushButton::clicked, this, &MainWindow::showHomePage);
-    connect(mediaButton, &QPushButton::clicked, this, &MainWindow::showMediaPage);
-    connect(settingsButton, &QPushButton::clicked, this, &MainWindow::showSettingsPage);
-
-    // Stretch Buttons Vertically
-    layout->addStretch(5);
-    layout->addWidget(homeButton);
-    layout->addStretch(1);
-    layout->addWidget(mediaButton);
-    layout->addStretch(1);
-    layout->addWidget(settingsButton);
-    layout->addStretch(5);
-
-    navBar->setStyleSheet("background-color: #212121;");
-    return navBar;
+void MainWindow::goToHomePage() {
+    stackedWidget->setCurrentIndex(0); // Switch to Home Page (index 0)
 }
 
-// Top Bar with Date and Time
-/*QWidget* MainWindow::createTopBar()
-{
-    QWidget *topBar = new QWidget(this);
-    QHBoxLayout *layout = new QHBoxLayout(topBar);
-    layout->setAlignment(Qt::AlignCenter);
-
-    timeLabel = new QLabel(topBar);
-    QFont font("Arial", 20, QFont::Bold);
-    timeLabel->setFont(font);
-    timeLabel->setAlignment(Qt::AlignCenter);
-
-    layout->addWidget(timeLabel);
-    topBar->setFixedHeight(60);
-    topBar->setStyleSheet("background-color: #212121; color: white;");
-
-    return topBar;
-}*/
-
-// Home Page
-QWidget* MainWindow::createHomePage()
-{
-    QWidget *homePage = new QWidget(this);
-    QVBoxLayout *layout = new QVBoxLayout(homePage);
-    layout->setAlignment(Qt::AlignCenter);
-
-
-    // Centered Clock
-    timeLabel = new QLabel(homePage);
-    QFont font("Arial", 36, QFont::Bold);
-    timeLabel->setFont(font);
-    timeLabel->setAlignment(Qt::AlignCenter);
-    timeLabel->setStyleSheet("color: white;");
-
-    layout->addStretch(1);  // Push Clock to Center Vertically
-    layout->addWidget(timeLabel);
-    layout->addStretch(1);
-
-    return homePage;
+void MainWindow::showMediaPage() {
+    stackedWidget->setCurrentIndex(1); // Switch to Media Page
 }
 
-// Media Page
-QWidget* MainWindow::createMediaPage()
-{
-    QWidget *mediaPage = new QWidget(this);
-    QVBoxLayout *layout = new QVBoxLayout(mediaPage);
-
-
-
-    QLabel *title = new QLabel("Media Player");
-    title->setAlignment(Qt::AlignCenter);
-    title->setStyleSheet("font-size: 22px; color: white;");
-    layout->addWidget(title);
-
-    QString buttonStyle = "QPushButton {"
-                          "  font-size: 25px; "
-                          "  padding: 10px; "
-                          "  background-color: rgba(66, 66, 66, 180); " // Adds transparency
-                          "  color: white; "
-                          "  border: none; "
-                          "  border-radius: 15px; "  // Adds rounded borders
-                          "}"
-                          "QPushButton:hover { background-color: rgba(97, 97, 97, 200); }";
-
-    QPushButton *playButton = new QPushButton("Play Media");
-    playButton->setFixedSize(300, 80);
-    playButton->setStyleSheet(buttonStyle);
-
-    layout->addStretch(1);
-    layout->addWidget(playButton, 0, Qt::AlignCenter);
-    layout->addStretch(1);
-
-    return mediaPage;
+void MainWindow::showSettingsPage() {
+    stackedWidget->setCurrentIndex(2); // Switch to Settings Page
 }
 
-// Settings Page
-QWidget* MainWindow::createSettingsPage()
-{
-    QWidget *settingsPage = new QWidget(this);
-    QVBoxLayout *layout = new QVBoxLayout(settingsPage);
-
-    QLabel *title = new QLabel("Settings");
-    title->setAlignment(Qt::AlignCenter);
-    title->setStyleSheet("font-size: 22px; color: white;");
-    layout->addWidget(title);
-
-    QString buttonStyle = "QPushButton {"
-                          "  font-size: 25px; "
-                          "  padding: 10px; "
-                          "  background-color: rgba(66, 66, 66, 180); " // Adds transparency
-                          "  color: white; "
-                          "  border: none; "
-                          "  border-radius: 15px; "  // Adds rounded borders
-                          "}"
-                          "QPushButton:hover { background-color: rgba(97, 97, 97, 200); }";
-
-    QPushButton *updateButton = new QPushButton("Check for Updates");
-    updateButton->setFixedSize(300, 80);
-    updateButton->setStyleSheet(buttonStyle);
-
-    connect(updateButton, &QPushButton::clicked, this, &MainWindow::checkForUpdates);
-    layout->addStretch(1);
-    layout->addWidget(updateButton, 0, Qt::AlignCenter);
-
-    layout->addStretch(1);
-
-    return settingsPage;
+void MainWindow::showNewsPage() {
+    stackedWidget->setCurrentIndex(3); // Switch to News Page
 }
 
-// Slots for Navigation
-void MainWindow::showHomePage()
-{
-    stackedWidget->setCurrentIndex(0);
+void MainWindow::showWeatherPage() {
+    stackedWidget->setCurrentIndex(4); // Switch to Weather Page
 }
 
-void MainWindow::showMediaPage()
-{
-    stackedWidget->setCurrentIndex(1);
+void MainWindow::showMapsPage() {
+    stackedWidget->setCurrentIndex(5); // Switch to Maps Page
 }
 
-void MainWindow::showSettingsPage()
+
+
+QPushButton* MainWindow::createIconButton(const QString &iconPath)
 {
-    stackedWidget->setCurrentIndex(2);
+    QPushButton *button = new QPushButton();
+    QIcon buttonIcon(iconPath);
+    button->setIcon(buttonIcon);
+
+    int iconSize = qMin(this->width(), this->height()) * 0.15;
+    button->setIconSize(QSize(iconSize, iconSize));
+
+    button->setStyleSheet(
+        "QPushButton {"
+        "  background-color: #2f2236;"
+        "  border: none;"
+        "  padding: 10px;"
+        "  color: white;"
+        "  font-size: 18px;"
+        "  border-bottom: 3px solid #00BFFF;"
+        "}"
+        "QPushButton:hover {"
+        "  background-color: #404040;"
+        "}"
+        "QPushButton:pressed {"
+        "  background-color: #1F1F1F;"
+        "  border-bottom: 3px solid #00CED1;"
+        "}"
+        );
+
+    int buttonWidth = this->width() * 0.2;
+    int buttonHeight = this->height() * 0.2;
+    button->setFixedSize(buttonWidth, buttonHeight);
+
+    return button;
 }
 
-void MainWindow::checkForUpdates()
+
+void MainWindow::updateDateTime()
 {
+    QString dateTime = QDateTime::currentDateTime().toString("ddd, MMM dd yyyy - hh:mm AP");
+    timeLabel->setText(dateTime);
+}
+
+
+void MainWindow::checkForUpdates() {
     QMessageBox::information(this, "Update", "Your system is up to date!");
 }
 
-// Update Date and Time
-void MainWindow::updateDateTime()
+void MainWindow::paintEvent(QPaintEvent *event)
 {
-    QString dateTime = QDateTime::currentDateTime().toString("ddd, MMM dd yyyy - hh:mm:ss AP");
-    timeLabel->setText(dateTime);
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    QPointF center(width() / 2, height() / 2);
+    qreal radius = qMin(width(), height()) / 2;
+
+    QRadialGradient gradient(center, radius * 5);
+    gradient.setColorAt(0, QColor(10, 10, 10));
+    gradient.setColorAt(1, QColor(79, 51, 79));  // deep purplish gradient
+
+    painter.setBrush(gradient);
+    painter.setPen(Qt::NoPen);
+    painter.drawRect(rect());
+
+    QMainWindow::paintEvent(event);
 }

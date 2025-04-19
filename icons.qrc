@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>icons/bluetooth.png</file>
+        <file>icons/call.png</file>
+        <file>icons/maps.png</file>
+        <file>icons/media.png</file>
+        <file>icons/settings.png</file>
+        <file>icons/weather.png</file>
+    </qresource>
+</RCC>

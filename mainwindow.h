@@ -13,21 +13,29 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 public:
     MainWindow(QWidget *parent = nullptr);
-
-private slots:
-    void showHomePage();
     void showSettingsPage();
     void showMediaPage();
     void checkForUpdates();
+    void paintEvent(QPaintEvent *event);
+    QPushButton* createLargeButton(const QString &text, const QString &iconName);
+    QPushButton* createIconButton(const QString &iconPath);
+    void goToHomePage();
+    void showNewsPage();
+    void showWeatherPage();
+    void showMapsPage();
+
+private slots:
+
 
 private:
     QWidget* createNavBar();
     QWidget* createHomePage();
     QWidget* createSettingsPage();
     QWidget* createMediaPage();
-
+    QString getAssetPath(const QString &filename);
     QStackedWidget *stackedWidget;
     QLabel *timeLabel;
+    QPushButton* createButton(const QString &text);
 
     void updateDateTime();
 };

@@ -1,0 +1,40 @@
+# Use an ARM64 Ubuntu base image since Jetson Nano is ARM-based
+FROM arm64v8/ubuntu:20.04 AS build
+
+# Set non-interactive frontend to prevent installation prompts
+ENV DEBIAN_FRONTEND=noninteractive
+ENV QT_DEBUG_PLUGINS=1
+
+# Install required dependencies, including X11 and Qt libraries
+RUN apt-get update && apt-get install -y \
+    build-essential qt5-default libqt5gui5 qtbase5-dev-tools qt5-qmake \
+    libqt5network5 libqt5widgets5 qttools5-dev-tools qtdeclarative5-dev \
+    xserver-xorg x11-xserver-utils x11-apps \
+    software-properties-common \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade GLIBC to 2.34
+RUN apt update && apt install -y software-properties-common \
+    && add-apt-repository ppa:ubuntu-toolchain-r/test -y \
+    && apt update && apt install -y libc6
+
+# Set environment variables for X11
+ENV DISPLAY=:0
+ENV QT_QPA_PLATFORM=xcb
+
+# Set working directory in container
+WORKDIR /app
+
+# Copy project files into the container
+COPY ./hmi_gui /app
+
+# Build the Qt project
+RUN qmake hmi_gui.pro && make
+
+# Expose the X11 display socket (not needed if running with --net=host)
+EXPOSE 6000
+
+# Start the application
+CMD ["./hmi_gui"]
+

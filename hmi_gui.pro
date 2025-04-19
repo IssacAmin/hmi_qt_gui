@@ -27,3 +27,7 @@ DISTFILES += \
     icons/home.png \
     icons/media.png \
     icons/settings.png
+
+RESOURCES += \
+    icons.qrc \
+    icons.qrc
