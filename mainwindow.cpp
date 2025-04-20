@@ -22,13 +22,13 @@ MainWindow::MainWindow(QWidget *parent)
     int screenWidth = screenGeometry.width();
     int screenHeight = screenGeometry.height();
 
-    int windowWidth = screenWidth * 0.8;
-    int windowHeight = screenHeight * 0.8;
+    windowWidth = screenWidth;
+    windowHeight = screenHeight;
 
     this->resize(windowWidth, windowHeight);
-    this->move((screenWidth - windowWidth) / 2, (screenHeight - windowHeight) / 2); // Center the window
+    this->move((screenWidth - windowWidth) / 2, (screenHeight - windowHeight) / 2);
 
-    // Set theme (Navy Blue Background with Gradient & Haze)
+    // Set theme
     QPalette darkPalette;
     darkPalette.setColor(QPalette::Window, QColor(30, 30, 30));
     darkPalette.setColor(QPalette::WindowText, Qt::white);
@@ -36,132 +36,287 @@ MainWindow::MainWindow(QWidget *parent)
     darkPalette.setColor(QPalette::ButtonText, Qt::white);
     QApplication::setPalette(darkPalette);
 
-    // Central Layout (for Home Page)
+    // Central Widget
     QWidget *centralWidget = new QWidget(this);
-    QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
 
-    mainLayout->addSpacing(windowHeight * 0.15);
-
-    // Clock Label
-    timeLabel = new QLabel(centralWidget);
-    QFont font("Arial", 36, QFont::Bold);
+    // Time and Date Labels
+    timeLabel = new QLabel();
+    QFont font("Arial", 45, QFont::Bold);
     timeLabel->setFont(font);
-    timeLabel->setAlignment(Qt::AlignCenter);
     timeLabel->setStyleSheet("color: white;");
-    mainLayout->addWidget(timeLabel);
 
-    mainLayout->addSpacing(windowHeight * 0.10);
+    dateLabel = new QLabel();
+    dateLabel->setFont(font);
+    dateLabel->setStyleSheet("color: white;");
 
-    // Button Grid
-    QWidget *buttonContainer = new QWidget(centralWidget);
-    QGridLayout *buttonLayout = new QGridLayout(buttonContainer);
+    // Layout for Time and Date
+    QVBoxLayout *timeLayout = new QVBoxLayout();
+    timeLayout->addWidget(dateLabel);
+    timeLayout->addWidget(timeLabel);
+    timeLayout->setAlignment(Qt::AlignCenter);
 
-    QPushButton *homeButton = createIconButton(":/icons/icons/call.png");
-    QPushButton *mediaButton = createIconButton(":/icons/icons/media.png");
+    // Buttons
+    QPushButton *callButton = createIconButton(":/icons/icons/call.png");
+    QPushButton *mediaButton = createmediaButton();
     QPushButton *settingsButton = createIconButton(":/icons/icons/settings.png");
-    QPushButton *newsButton = createIconButton(":/icons/icons/bluetooth.png");
-    QPushButton *weatherButton = createIconButton(":/icons/icons/weather.png");
+    QPushButton *bluetoothButton = createIconButton(":/icons/icons/bluetooth.png");
+    QPushButton *marketPlaceButton = createIconButton(":/icons/icons/marketplace.png");
     QPushButton *mapsButton = createIconButton(":/icons/icons/maps.png");
+    QPushButton *weatherButton = createIconButton(":/icons/icons/weather.png");
 
-    buttonLayout->addWidget(homeButton, 0, 0);
-    buttonLayout->addWidget(mediaButton, 0, 1);
-    buttonLayout->addWidget(settingsButton, 0, 2);
-    buttonLayout->addWidget(newsButton, 1, 0);
-    buttonLayout->addWidget(weatherButton, 1, 1);
-    buttonLayout->addWidget(mapsButton, 1, 2);
+    // Layout for Buttons
+    QVBoxLayout *buttonsLayout = new QVBoxLayout();
 
-    buttonLayout->setVerticalSpacing(windowHeight * 0.05);
-    buttonLayout->setHorizontalSpacing(0);
-    buttonLayout->setContentsMargins(0, 0, 0, 0);
+    // First row of buttons
+    QHBoxLayout *row1 = new QHBoxLayout();
+    row1->addLayout(timeLayout);
+    row1->addWidget(mediaButton);
 
-    buttonContainer->setLayout(buttonLayout);
-    mainLayout->addWidget(buttonContainer);
+    // Second row of buttons
+    QHBoxLayout *row2 = new QHBoxLayout();
+    row2->addWidget(callButton); // Maps button will occupy a larger space
+    row2->addWidget(weatherButton);
+    row2->addWidget(settingsButton);
+    row2->setSpacing(windowWidth *0.02);
 
-    mainLayout->addSpacing(windowHeight * 0.40);
+    // Third row of buttons
+    QHBoxLayout *row3 = new QHBoxLayout();
+    row3->addWidget(mapsButton);
+    row3->addWidget(bluetoothButton);
+    row3->addWidget(marketPlaceButton);
+    row3->setSpacing(windowWidth *0.02);
 
-    // Home Page
-    QWidget *homePage = new QWidget(this);
-    homePage->setLayout(mainLayout);
 
-    // Media Page
-    QWidget *mediaPage = new QWidget(this);
-    QVBoxLayout *mediaLayout = new QVBoxLayout(mediaPage);
-    mediaLayout->addWidget(new QLabel("Media Page", mediaPage));
+    // Add rows to the buttons layout
+    buttonsLayout->addLayout(row1);
+    buttonsLayout->addLayout(row2);
+    buttonsLayout->addLayout(row3);
 
-    QPushButton *backMediaButton = new QPushButton("Back to Home", mediaPage);
-    mediaLayout->addWidget(backMediaButton);
-    mediaLayout->addStretch();
-    mediaPage->setStyleSheet("color: white; font-size: 24px;");
 
-    // Settings Page
-    QWidget *settingsPage = new QWidget(this);
-    QVBoxLayout *settingsLayout = new QVBoxLayout(settingsPage);
-    settingsLayout->addWidget(new QLabel("Settings Page", settingsPage));
-
-    QPushButton *backSettingsButton = new QPushButton("Back to Home", settingsPage);
-    settingsLayout->addWidget(backSettingsButton);
-    settingsLayout->addStretch();
-    settingsPage->setStyleSheet("color: white; font-size: 24px;");
-
-    // News Page
-    QWidget *newsPage = new QWidget(this);
-    QVBoxLayout *newsLayout = new QVBoxLayout(newsPage);
-    newsLayout->addWidget(new QLabel("News Page", newsPage));
-    QPushButton *backNewsButton = new QPushButton("Back to Home", newsPage);
-    newsLayout->addWidget(backNewsButton);
-    newsLayout->addStretch();
-    newsPage->setStyleSheet("color: white; font-size: 24px;");
-
-    // Weather Page
-    QWidget *weatherPage = new QWidget(this);
-    QVBoxLayout *weatherLayout = new QVBoxLayout(weatherPage);
-    weatherLayout->addWidget(new QLabel("Weather Page", weatherPage));
-    QPushButton *backWeatherButton = new QPushButton("Back to Home", weatherPage);
-    weatherLayout->addWidget(backWeatherButton);
-    weatherLayout->addStretch();
-    weatherPage->setStyleSheet("color: white; font-size: 24px;");
-
-    // Maps Page
-    QWidget *mapsPage = new QWidget(this);
-    QVBoxLayout *mapsLayout = new QVBoxLayout(mapsPage);
-    mapsLayout->addWidget(new QLabel("Maps Page", mapsPage));
-    QPushButton *backMapsButton = new QPushButton("Back to Home", mapsPage);
-    mapsLayout->addWidget(backMapsButton);
-    mapsLayout->addStretch();
-    mapsPage->setStyleSheet("color: white; font-size: 24px;");
-
-    // Stack all pages
+    // Create stacked widget and pages
     stackedWidget = new QStackedWidget(this);
-    stackedWidget->addWidget(homePage);     // Index 0
-    stackedWidget->addWidget(mediaPage);    // Index 1
-    stackedWidget->addWidget(settingsPage); // Index 2
-    stackedWidget->addWidget(newsPage);     // Index 3
-    stackedWidget->addWidget(weatherPage);  // Index 4
-    stackedWidget->addWidget(mapsPage);     // Index 5
+    QWidget *homePage = new QWidget();
+    QWidget *mediaPage = new QLabel("Media Page");
+    QWidget *settingsPage = new QLabel("Settings Page");
+    QWidget *weatherPage = new QLabel("Weather Page");
+    QWidget *mapsPage = new QLabel("Maps Page");
+    QWidget *marketplacePage = new QLabel("Marketplace Page");
 
-    setCentralWidget(stackedWidget);
+    // Set up layout of homePage with your buttons
+    homePage->setLayout(buttonsLayout);  // reuse your existing layout
 
-    // Connect buttons to corresponding pages
-    connect(homeButton, &QPushButton::clicked, this, &MainWindow::goToHomePage);
-    connect(mediaButton, &QPushButton::clicked, this, &MainWindow::showMediaPage);
-    connect(settingsButton, &QPushButton::clicked, this, &MainWindow::showSettingsPage);
-    connect(newsButton, &QPushButton::clicked, this, &MainWindow::showNewsPage);
-    connect(weatherButton, &QPushButton::clicked, this, &MainWindow::showWeatherPage);
-    connect(mapsButton, &QPushButton::clicked, this, &MainWindow::showMapsPage);
+    // Add pages to stacked widget
+    stackedWidget->addWidget(homePage);        // index 0
+    stackedWidget->addWidget(mediaPage);       // index 1
+    stackedWidget->addWidget(settingsPage);    // index 2
+    stackedWidget->addWidget(weatherPage);     // index 3
+    stackedWidget->addWidget(mapsPage);        // index 4
+    stackedWidget->addWidget(marketplacePage); // index 5
 
-    // Connect back buttons to home page
-    connect(backMediaButton, &QPushButton::clicked, this, &MainWindow::goToHomePage);
-    connect(backSettingsButton, &QPushButton::clicked, this, &MainWindow::goToHomePage);
-    connect(backNewsButton, &QPushButton::clicked, this, &MainWindow::goToHomePage);
-    connect(backWeatherButton, &QPushButton::clicked, this, &MainWindow::goToHomePage);
-    connect(backMapsButton, &QPushButton::clicked, this, &MainWindow::goToHomePage);
+    // Layout stacking and navigation
+    QVBoxLayout *mainLayout = new QVBoxLayout();
+    mainLayout->addWidget(stackedWidget);
+    centralWidget->setLayout(mainLayout);
 
     // Timer for DateTime
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &MainWindow::updateDateTime);
     timer->start(1000);
     updateDateTime();
+
+    connect(mediaButton, &QPushButton::clicked, this, [=]() {
+        stackedWidget->setCurrentIndex(1);
+    });
+    connect(settingsButton, &QPushButton::clicked, this, [=]() {
+        stackedWidget->setCurrentIndex(2);
+    });
+    connect(weatherButton, &QPushButton::clicked, this, [=]() {
+        stackedWidget->setCurrentIndex(3);
+    });
+    connect(mapsButton, &QPushButton::clicked, this, [=]() {
+        stackedWidget->setCurrentIndex(4);
+    });
+    connect(marketPlaceButton, &QPushButton::clicked, this, [=]() {
+        stackedWidget->setCurrentIndex(5);
+    });
+
+    stackedWidget->setCurrentIndex(0);
+    setCentralWidget(centralWidget);
+
 }
+
+void MainWindow::updateDateTime()
+{
+    QString dateTime = QDateTime::currentDateTime().toString("ddd, MMM dd yyyy");
+    QString time = QDateTime::currentDateTime().toString("hh:mm AP");
+    dateLabel->setText(dateTime);  // Update Date
+    timeLabel->setText(time);      // Update Time
+}
+
+QPushButton* MainWindow::createIconButton(const QString &iconPath)
+{
+    QPushButton *button = new QPushButton();
+    QIcon buttonIcon(iconPath);
+    button->setIcon(buttonIcon);
+
+    int iconSize = qMin(this->width(), this->height()) * 0.15;
+    button->setIconSize(QSize(iconSize, iconSize));
+
+    button->setStyleSheet(
+        "QPushButton {"
+        "  background-color: #2f2236;"
+        "  border: none;"
+        "  padding: 10px;"
+        "  color: white;"
+        "  font-size: 18px;"
+        "  border-radius: 20px"
+        "}"
+        "QPushButton:hover {"
+        "  background-color: #404040;"
+        "}"
+        "QPushButton:pressed {"
+        "  background-color: #1F1F1F;"
+        "  border-bottom: 3px solid #00CED1;"
+        "}"
+        );
+
+    return button;
+}
+QPushButton* MainWindow::createmediaButton()
+{
+    // Main media button that will hold the inner buttons
+    QPushButton *button = new QPushButton();
+    button->setMinimumHeight(windowHeight * 0.4);
+    button->setStyleSheet(
+        "QPushButton {"
+        "  border: none;"
+        "  border-radius: 20px;"
+        "  background: transparent;"  // Remove background
+        "}"
+        );
+
+    // Create the inner buttons
+    QPushButton *playPauseButton = createWhiteIconButton(":/icons/icons/play.png");  // Play icon (you can change to play/pause logic later)
+    QPushButton *nextButton = createWhiteIconButton(":/icons/icons/next.png");
+    QPushButton *prevButton = createWhiteIconButton(":/icons/icons/previous.png");
+
+
+    // Layout for the three inner buttons
+    QVBoxLayout *mediaLayout = new QVBoxLayout();
+    QHBoxLayout *innerLayout = new QHBoxLayout();
+    innerLayout->addWidget(prevButton);
+    innerLayout->addWidget(playPauseButton);
+    innerLayout->addWidget(nextButton);
+
+    QLabel *songLabel = new QLabel();
+    QFont font("Arial", 25, QFont::Bold);
+    songLabel->setFont(font);
+    songLabel->setStyleSheet("color: white;");
+    songLabel->setText("Song Name...");
+
+    mediaLayout->setAlignment(Qt::AlignCenter);
+    mediaLayout->addWidget(songLabel);
+    mediaLayout->addLayout(innerLayout);
+    // Set layout to the main button (the media button)
+    QWidget *mediaWidget = new QWidget();
+    mediaWidget->setLayout(mediaLayout);
+
+    // Set the media widget as the content of the media button
+    button->setLayout(new QVBoxLayout());
+    button->layout()->addWidget(mediaWidget);
+
+    // Connect button functionality for play/pause, next, previous
+    connect(playPauseButton, &QPushButton::clicked, this, &MainWindow::togglePlayPause);
+    connect(nextButton, &QPushButton::clicked, this, &MainWindow::playNextTrack);
+    connect(prevButton, &QPushButton::clicked, this, &MainWindow::playPreviousTrack);
+
+    return button;
+}
+
+
+
+QPushButton* MainWindow::createWhiteIconButton(const QString &iconPath)
+{
+    QPushButton *button = new QPushButton();
+
+    // Load and recolor icon to white
+    QPixmap pixmap(iconPath);
+    QImage image = pixmap.toImage().convertToFormat(QImage::Format_ARGB32);
+
+    for (int y = 0; y < image.height(); ++y) {
+        QRgb *line = reinterpret_cast<QRgb *>(image.scanLine(y));
+        for (int x = 0; x < image.width(); ++x) {
+            QColor originalColor = QColor::fromRgba(line[x]);
+            int alpha = originalColor.alpha();
+            line[x] = QColor(255, 255, 255, alpha).rgba();
+        }
+    }
+
+    QPixmap whitePixmap = QPixmap::fromImage(image);
+
+    // Scale the pixmap to desired icon size
+    QSize iconSize(windowHeight* 0.07,windowHeight* 0.07); // desired icon size
+    QPixmap scaledPixmap = whitePixmap.scaled(iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+    button->setIcon(QIcon(scaledPixmap));
+    button->setIconSize(iconSize);
+    button->setFixedSize(windowHeight* 0.25, windowHeight* 0.25); // button size
+
+
+    // Apply flat icon-only style
+    button->setStyleSheet(
+        "QPushButton {"
+        "  border: none;"
+        "  background: transparent;"
+        "  padding: 0;"
+        "}"
+        );
+
+    return button;
+}
+
+QIcon MainWindow::createWhiteIcon(const QString &iconPath, const QSize &size)
+{
+    QPixmap pixmap(iconPath);
+    QImage image = pixmap.toImage().convertToFormat(QImage::Format_ARGB32);
+
+    for (int y = 0; y < image.height(); ++y) {
+        QRgb *line = reinterpret_cast<QRgb *>(image.scanLine(y));
+        for (int x = 0; x < image.width(); ++x) {
+            QColor originalColor = QColor::fromRgba(line[x]);
+            int alpha = originalColor.alpha();
+            line[x] = QColor(255, 255, 255, alpha).rgba();
+        }
+    }
+
+    QPixmap whitePixmap = QPixmap::fromImage(image).scaled(size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    return QIcon(whitePixmap);
+}
+
+void MainWindow::togglePlayPause() {
+    static bool isPlaying = false;
+    isPlaying = !isPlaying;
+
+    QString iconPath = isPlaying ? ":/icons/icons/pause.png" : ":/icons/icons/play.png";
+    QPushButton *button = qobject_cast<QPushButton*>(sender());
+    if (button) {
+        button->setIcon(createWhiteIcon(iconPath, QSize(windowHeight* 0.07,windowHeight* 0.07)));
+    }
+}
+
+void MainWindow::playNextTrack() {
+    // Logic for playing the next track
+    qDebug() << "Next track";
+}
+
+void MainWindow::playPreviousTrack() {
+    // Logic for playing the previous track
+    qDebug() << "Previous track";
+}
+
+
+
+
 
 // Slot implementations for each page
 
@@ -191,46 +346,7 @@ void MainWindow::showMapsPage() {
 
 
 
-QPushButton* MainWindow::createIconButton(const QString &iconPath)
-{
-    QPushButton *button = new QPushButton();
-    QIcon buttonIcon(iconPath);
-    button->setIcon(buttonIcon);
 
-    int iconSize = qMin(this->width(), this->height()) * 0.15;
-    button->setIconSize(QSize(iconSize, iconSize));
-
-    button->setStyleSheet(
-        "QPushButton {"
-        "  background-color: #2f2236;"
-        "  border: none;"
-        "  padding: 10px;"
-        "  color: white;"
-        "  font-size: 18px;"
-        "  border-bottom: 3px solid #00BFFF;"
-        "}"
-        "QPushButton:hover {"
-        "  background-color: #404040;"
-        "}"
-        "QPushButton:pressed {"
-        "  background-color: #1F1F1F;"
-        "  border-bottom: 3px solid #00CED1;"
-        "}"
-        );
-
-    int buttonWidth = this->width() * 0.2;
-    int buttonHeight = this->height() * 0.2;
-    button->setFixedSize(buttonWidth, buttonHeight);
-
-    return button;
-}
-
-
-void MainWindow::updateDateTime()
-{
-    QString dateTime = QDateTime::currentDateTime().toString("ddd, MMM dd yyyy - hh:mm AP");
-    timeLabel->setText(dateTime);
-}
 
 
 void MainWindow::checkForUpdates() {

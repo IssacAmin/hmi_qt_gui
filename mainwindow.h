@@ -17,12 +17,17 @@ public:
     void showMediaPage();
     void checkForUpdates();
     void paintEvent(QPaintEvent *event);
-    QPushButton* createLargeButton(const QString &text, const QString &iconName);
     QPushButton* createIconButton(const QString &iconPath);
+    QPushButton* createmediaButton();
     void goToHomePage();
     void showNewsPage();
     void showWeatherPage();
     void showMapsPage();
+    void togglePlayPause();
+    void playNextTrack();
+    QPushButton*createWhiteIconButton(const QString &iconPath);
+    void playPreviousTrack();
+    QIcon createWhiteIcon(const QString &iconPath, const QSize &size);
 
 private slots:
 
@@ -35,6 +40,9 @@ private:
     QString getAssetPath(const QString &filename);
     QStackedWidget *stackedWidget;
     QLabel *timeLabel;
+    QLabel *dateLabel;
+    int windowWidth;
+    int windowHeight;
     QPushButton* createButton(const QString &text);
 
     void updateDateTime();

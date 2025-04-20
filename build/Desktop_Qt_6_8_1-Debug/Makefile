@@ -832,22 +832,40 @@ compiler_rcc_clean:
 	-$(DEL_FILE) qrc_icons.cpp qrc_icons.cpp
 qrc_icons.cpp: ../../icons.qrc \
 		../../../Qt/6.8.1/gcc_64/libexec/rcc \
+		../../icons/weather.png \
+		../../icons/maps.jpeg \
+		../../icons/marketplace.png \
 		../../icons/maps.png \
 		../../icons/media.png \
 		../../icons/weather.png \
+		../../icons/pause.png \
+		../../icons/next.png \
+		../../icons/maps.jpeg \
 		../../icons/settings.png \
 		../../icons/call.png \
-		../../icons/bluetooth.png
+		../../icons/previous.png \
+		../../icons/marketplace.png \
+		../../icons/bluetooth.png \
+		../../icons/play.png
 	/home/issac/Qt/6.8.1/gcc_64/libexec/rcc -name icons ../../icons.qrc -o qrc_icons.cpp
 
 qrc_icons.cpp: ../../icons.qrc \
 		../../../Qt/6.8.1/gcc_64/libexec/rcc \
+		../../icons/weather.png \
+		../../icons/maps.jpeg \
+		../../icons/marketplace.png \
 		../../icons/maps.png \
 		../../icons/media.png \
 		../../icons/weather.png \
+		../../icons/pause.png \
+		../../icons/next.png \
+		../../icons/maps.jpeg \
 		../../icons/settings.png \
 		../../icons/call.png \
-		../../icons/bluetooth.png
+		../../icons/previous.png \
+		../../icons/marketplace.png \
+		../../icons/bluetooth.png \
+		../../icons/play.png
 	/home/issac/Qt/6.8.1/gcc_64/libexec/rcc -name icons ../../icons.qrc -o qrc_icons.cpp
 
 compiler_moc_predefs_make_all: moc_predefs.h
