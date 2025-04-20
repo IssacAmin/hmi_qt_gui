@@ -12,6 +12,8 @@
 #include <QIcon>
 #include <QScreen>
 #include <QStackedWidget>
+#include <QScrollArea>
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -100,7 +102,7 @@ MainWindow::MainWindow(QWidget *parent)
     QWidget *settingsPage = new QLabel("Settings Page");
     QWidget *weatherPage = new QLabel("Weather Page");
     QWidget *mapsPage = new QLabel("Maps Page");
-    QWidget *marketplacePage = new QLabel("Marketplace Page");
+    QWidget *marketplacePage = createMarketplacePage();
 
     // Set up layout of homePage with your buttons
     homePage->setLayout(buttonsLayout);  // reuse your existing layout
@@ -370,4 +372,73 @@ void MainWindow::paintEvent(QPaintEvent *event)
     painter.drawRect(rect());
 
     QMainWindow::paintEvent(event);
+}
+
+
+QWidget* MainWindow::createMarketplacePage() {
+    QWidget *page = new QWidget();
+    QVBoxLayout *mainLayout = new QVBoxLayout(page);
+
+    // --- Top Nav Bar with Home Button ---
+    QHBoxLayout *navLayout = new QHBoxLayout();
+
+    QPushButton *homeButton = new QPushButton();
+    QPixmap homePixmap(":/icons/icons/home.png");
+    QImage image = homePixmap.toImage().convertToFormat(QImage::Format_ARGB32);
+
+    for (int y = 0; y < image.height(); ++y) {
+        QRgb *line = reinterpret_cast<QRgb *>(image.scanLine(y));
+        for (int x = 0; x < image.width(); ++x) {
+            QColor originalColor = QColor::fromRgba(line[x]);
+            int alpha = originalColor.alpha();
+            line[x] = QColor(255, 255, 255, alpha).rgba(); // make white
+        }
+    }
+
+    QPixmap whiteHomePixmap = QPixmap::fromImage(image).scaled(windowHeight * 0.05, windowHeight * 0.05, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    homeButton->setIcon(QIcon(whiteHomePixmap));
+    homeButton->setIconSize(QSize(windowHeight * 0.05, windowHeight * 0.05));
+    homeButton->setFixedSize(windowHeight * 0.07, windowHeight * 0.07);
+    homeButton->setStyleSheet("QPushButton { border: none; background: transparent; padding: 0; }");
+
+    connect(homeButton, &QPushButton::clicked, this, &MainWindow::goToHomePage);
+
+
+    // --- Scrollable List Placeholder ---
+    QScrollArea *scrollArea = new QScrollArea();
+    QWidget *listContainer = new QWidget();
+    QVBoxLayout *listLayout = new QVBoxLayout(listContainer);
+
+    // Example: Static entries (these will be replaced with MQTT-loaded entries)
+    for (int i = 0; i < 10; ++i) {
+        // List item as transparent button with white separator line
+        QPushButton *itemButton = new QPushButton(QString("Marketplace Item %1").arg(i + 1));
+        itemButton->setStyleSheet(
+            "QPushButton {"
+            "  background: transparent;"
+            "  color: white;"
+            "  border: none;"
+            "  text-align: left;"
+            "  padding: 10px 0;"
+            "  border-bottom: 1px solid #FFFFFF;"
+            "}"
+            "QPushButton:hover {"
+            "  background: rgba(255, 255, 255, 0.1);"
+            "}"
+            );
+
+
+        listLayout->addWidget(itemButton);
+    }
+
+    listContainer->setLayout(listLayout);
+    scrollArea->setWidget(listContainer);
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setStyleSheet("background-color: transparent;");
+
+    mainLayout->addWidget(scrollArea);
+    navLayout->addWidget(homeButton);
+    mainLayout->addLayout(navLayout);
+
+    return page;
 }

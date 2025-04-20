@@ -12,6 +12,7 @@
         <file>icons/pause.png</file>
         <file>icons/play.png</file>
         <file>icons/previous.png</file>
+        <file>icons/home.png</file>
     </qresource>
     <qresource prefix="/">
         <file>icons/weather.png</file>

@@ -846,7 +846,8 @@ qrc_icons.cpp: ../../icons.qrc \
 		../../icons/previous.png \
 		../../icons/marketplace.png \
 		../../icons/bluetooth.png \
-		../../icons/play.png
+		../../icons/play.png \
+		../../icons/home.png
 	/home/issac/Qt/6.8.1/gcc_64/libexec/rcc -name icons ../../icons.qrc -o qrc_icons.cpp
 
 qrc_icons.cpp: ../../icons.qrc \
@@ -865,7 +866,8 @@ qrc_icons.cpp: ../../icons.qrc \
 		../../icons/previous.png \
 		../../icons/marketplace.png \
 		../../icons/bluetooth.png \
-		../../icons/play.png
+		../../icons/play.png \
+		../../icons/home.png
 	/home/issac/Qt/6.8.1/gcc_64/libexec/rcc -name icons ../../icons.qrc -o qrc_icons.cpp
 
 compiler_moc_predefs_make_all: moc_predefs.h
@@ -1546,7 +1548,10 @@ mainwindow.o: ../../mainwindow.cpp ../../mainwindow.h \
 		../../../Qt/6.8.1/gcc_64/include/QtWidgets/QGridLayout \
 		../../../Qt/6.8.1/gcc_64/include/QtWidgets/QSpacerItem \
 		../../../Qt/6.8.1/gcc_64/include/QtGui/QIcon \
-		../../../Qt/6.8.1/gcc_64/include/QtGui/QScreen
+		../../../Qt/6.8.1/gcc_64/include/QtGui/QScreen \
+		../../../Qt/6.8.1/gcc_64/include/QtWidgets/QScrollArea \
+		../../../Qt/6.8.1/gcc_64/include/QtWidgets/qscrollarea.h \
+		../../../Qt/6.8.1/gcc_64/include/QtWidgets/qabstractscrollarea.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o ../../mainwindow.cpp
 
 qrc_icons.o: qrc_icons.cpp 

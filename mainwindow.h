@@ -28,6 +28,7 @@ public:
     QPushButton*createWhiteIconButton(const QString &iconPath);
     void playPreviousTrack();
     QIcon createWhiteIcon(const QString &iconPath, const QSize &size);
+    QWidget* createMarketplacePage();
 
 private slots:
 
