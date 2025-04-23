@@ -7,6 +7,26 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QLabel>
+#include <QTimer>
+#include <QDateTime>
+#include <QMessageBox>
+#include <QApplication>
+#include <QPainter>
+#include <QVBoxLayout>
+#include <QPushButton>
+#include <QLabel>
+#include <QGridLayout>
+#include <QSpacerItem>
+#include <QIcon>
+#include <QScreen>
+#include <QStackedWidget>
+#include <QScrollArea>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QPushButton>
+#include <QDebug>
 
 class MainWindow : public QMainWindow
 {
@@ -28,12 +48,6 @@ public:
     QPushButton*createWhiteIconButton(const QString &iconPath);
     void playPreviousTrack();
     QIcon createWhiteIcon(const QString &iconPath, const QSize &size);
-    QWidget* createMarketplacePage();
-
-private slots:
-
-
-private:
     QWidget* createNavBar();
     QWidget* createHomePage();
     QWidget* createSettingsPage();
@@ -45,8 +59,13 @@ private:
     int windowWidth;
     int windowHeight;
     QPushButton* createButton(const QString &text);
-
     void updateDateTime();
+
+private slots:
+
+
+private:
+
 };
 
 #endif // MAINWINDOW_H
