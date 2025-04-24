@@ -2,7 +2,10 @@
 #include <QPushButton>
 #include "marketplace.h"
 #include "mainwindow.h"
-
+#include <QLabel>
+#include <QVariant>
+#include <QMovie>
+#include "spinner.h"
 
 marketplace::marketplace(QObject *parent)
     : QObject(parent)
@@ -54,8 +57,10 @@ marketplace::marketplace(QObject *parent)
         QWidget *listContainer = new QWidget();
         QVBoxLayout *listLayout = new QVBoxLayout(listContainer);
 
-        QString jsonPath = QCoreApplication::applicationDirPath() + "/marketplace.json";
+        QString jsonPath = QCoreApplication::applicationDirPath() + "/json/marketplace.json";
+        installedFeaturesPath = QCoreApplication::applicationDirPath() + "/json/installed_features.json";
         QFile file(jsonPath);
+        QFile installed_features_file(installedFeaturesPath);
         if (!file.open(QIODevice::ReadOnly)) {
             qWarning() << "Failed to open JSON file:" << jsonPath;
         }
@@ -72,6 +77,7 @@ marketplace::marketplace(QObject *parent)
 
         QJsonObject rootObj = doc.object();
         QJsonArray items = rootObj.value("marketplace").toArray();
+
 
         if (items.isEmpty()) {
             QVBoxLayout *centerLayout = new QVBoxLayout;
@@ -104,7 +110,36 @@ marketplace::marketplace(QObject *parent)
             QJsonObject obj = val.toObject();
             QString name = obj.value("name").toString();
             QString price = obj.value("price").toString();
-            bool installed = obj.value("installed").toBool();
+
+
+
+            bool installed = false;
+
+            if (installed_features_file.open(QIODevice::ReadOnly)) {
+                QByteArray installedData = installed_features_file.readAll();
+                installed_features_file.close();
+
+                QJsonParseError installedParseError;
+                QJsonDocument installedDoc = QJsonDocument::fromJson(installedData, &installedParseError);
+                QJsonObject rootObj = installedDoc.object();
+                QJsonArray items = rootObj.value("features").toArray();
+
+                if (installedParseError.error == QJsonParseError::NoError) {
+                    QJsonArray installedArray = installedDoc.array();
+                    for (const QJsonValue &val : items) {
+                        QJsonObject installedObj = val.toObject();
+                        if (installedObj.contains("name") && installedObj.value("name").toString() == name) {
+                            installed = installedObj.value("installed").toBool();
+                            break;
+                        }
+                    }
+                } else {
+                    qWarning() << "Installed features parse error:" << installedParseError.errorString();
+                }
+            } else {
+                qWarning() << "Failed to open installed features file:" << installedFeaturesPath;
+            }
+
 
 
             QWidget *itemWidget = new QWidget;
@@ -125,6 +160,7 @@ marketplace::marketplace(QObject *parent)
             // Right: Install button
             QPushButton *installButton = new QPushButton;
             if (installed) {
+                installButton->setFixedSize(windowHeight * 0.1, windowWidth * 0.03);
                 installButton->setText("Installed");
                 installButton->setEnabled(false);
                 installButton->setStyleSheet(
@@ -137,6 +173,7 @@ marketplace::marketplace(QObject *parent)
                     "}"
                     );
             } else {
+                installButton->setFixedSize(windowHeight * 0.1, windowWidth * 0.03);
                 installButton->setText("Install");
                 installButton->setStyleSheet(
                     "QPushButton {"
@@ -151,6 +188,12 @@ marketplace::marketplace(QObject *parent)
                     "}"
                     );
             }
+            connect(installButton, &QPushButton::clicked, this, [this, installButton, name]() {
+                showSpinnerOnButton(installButton);
+                emit installRequested(name);
+            });
+
+            featureButtons[name] = installButton;
 
             // Add both to the item layout
             itemLayout->addLayout(textLayout);
@@ -171,9 +214,10 @@ marketplace::marketplace(QObject *parent)
 
             listLayout->addWidget(separator);
 
+
         }
 
-
+        setupFileWatcher();
 
         listContainer->setLayout(listLayout);
         scrollArea->setWidget(listContainer);
@@ -186,6 +230,107 @@ marketplace::marketplace(QObject *parent)
 
         return page;
     }
+
+
+
+    void marketplace::showSpinnerOnButton(QPushButton *button) {
+        button->setEnabled(false);         // disable button while loading
+        button->setText("");               // remove text
+
+        SpinnerWidget *spinner = new SpinnerWidget(button);  // parent is button
+        spinner->move((button->width() - spinner->width()) / 2,
+                      (button->height() - spinner->height()) / 2);
+        spinner->show();
+    }
+
+
+    void marketplace::setupFileWatcher() {
+        if (!fileWatcher) {
+            fileWatcher = new QFileSystemWatcher(this);
+            connect(fileWatcher, &QFileSystemWatcher::fileChanged, this, [this]() {
+                // qDebug() << "installed_features.json changed!";
+                updateInstalledStates();
+
+                // QFileSystemWatcher may stop watching if the file was overwritten
+                QTimer::singleShot(100, this, [this]() {
+                    if (!fileWatcher->files().contains(installedFeaturesPath)) {
+                        fileWatcher->addPath(installedFeaturesPath);
+                    }
+                });
+            });
+        }
+
+        if (!fileWatcher->files().contains(installedFeaturesPath)) {
+            fileWatcher->addPath(installedFeaturesPath);
+        }
+
+        updateInstalledStates();  // initial state
+    }
+
+
+    void marketplace::updateInstalledStates() {
+        QFile installedFile(installedFeaturesPath);
+        if (!installedFile.open(QIODevice::ReadOnly)) {
+            qWarning() << "Failed to open installed features file:" << installedFeaturesPath;
+            return;
+        }
+
+        QByteArray data = installedFile.readAll();
+        installedFile.close();
+
+        QJsonParseError error;
+        QJsonDocument doc = QJsonDocument::fromJson(data, &error);
+        if (error.error != QJsonParseError::NoError) {
+            qWarning() << "Failed to parse installed_features.json:" << error.errorString();
+            return;
+        }
+
+        QSet<QString> installedSet;
+        QJsonObject root = doc.object();
+        QJsonArray features = root.value("features").toArray();
+        for (const QJsonValue &val : features) {
+            QJsonObject obj = val.toObject();
+            if (obj.contains("name") && obj["installed"].toBool()) {
+                installedSet.insert(obj["name"].toString());
+            }
+        }
+
+        for (const QString &name : featureButtons.keys()) {
+            QPushButton *btn = featureButtons[name];
+            if (!btn) continue;
+
+            if (installedSet.contains(name)) {
+                btn->setText("Installed");
+                btn->setEnabled(false);
+                btn->setStyleSheet(
+                    "QPushButton {"
+                    "  background-color: grey;"
+                    "  color: white;"
+                    "  border: none;"
+                    "  padding: 6px 12px;"
+                    "  border-radius: 4px;"
+                    "}"
+                    );
+            } else {
+                btn->setText("Install");
+                btn->setEnabled(true);
+                btn->setStyleSheet(
+                    "QPushButton {"
+                    "  background-color: #4CAF50;"
+                    "  color: white;"
+                    "  border: none;"
+                    "  padding: 6px 12px;"
+                    "  border-radius: 4px;"
+                    "}"
+                    "QPushButton:hover {"
+                    "  background-color: #45a049;"
+                    "}"
+                    );
+            }
+        }
+    }
+
+
 
 
 

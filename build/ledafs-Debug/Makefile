@@ -53,12 +53,18 @@ OBJECTS_DIR   = ./
 ####### Files
 
 SOURCES       = ../../main.cpp \
-		../../mainwindow.cpp qrc_icons.cpp \
-		moc_mainwindow.cpp
+		../../mainwindow.cpp \
+		../../marketplace.cpp qrc_icons.cpp \
+		moc_mainwindow.cpp \
+		moc_marketplace.cpp \
+		moc_spinner.cpp
 OBJECTS       = main.o \
 		mainwindow.o \
+		marketplace.o \
 		qrc_icons.o \
-		moc_mainwindow.o
+		moc_mainwindow.o \
+		moc_marketplace.o \
+		moc_spinner.o
 DIST          = ../../icons/home.png \
 		../../icons/media.png \
 		../../icons/settings.png \
@@ -243,8 +249,11 @@ DIST          = ../../icons/home.png \
 		/Toolchain/sysroots/armv8a-poky-linux/usr/lib/mkspecs/features/exceptions.prf \
 		/Toolchain/sysroots/armv8a-poky-linux/usr/lib/mkspecs/features/yacc.prf \
 		/Toolchain/sysroots/armv8a-poky-linux/usr/lib/mkspecs/features/lex.prf \
-		../../../../hmi_gui.pro ../../mainwindow.h ../../main.cpp \
-		../../mainwindow.cpp
+		../../../../hmi_gui.pro ../../mainwindow.h \
+		../../marketplace.h \
+		../../spinner.h ../../main.cpp \
+		../../mainwindow.cpp \
+		../../marketplace.cpp
 QMAKE_TARGET  = hmi_gui
 DESTDIR       = 
 TARGET        = hmi_gui
@@ -639,8 +648,8 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents ../../icons.qrc ../../icons.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents ../../../Toolchain/sysroots/armv8a-poky-linux/usr/lib/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../../mainwindow.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../../main.cpp ../../mainwindow.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../../mainwindow.h ../../marketplace.h ../../spinner.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../../main.cpp ../../mainwindow.cpp ../../marketplace.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents ../../mainwindow.ui $(DISTDIR)/
 
 
@@ -670,21 +679,41 @@ compiler_rcc_clean:
 	-$(DEL_FILE) qrc_icons.cpp qrc_icons.cpp
 qrc_icons.cpp: ../../icons.qrc \
 		../../../Toolchain/sysroots/x86_64-pokysdk-linux/usr/bin/rcc \
+		../../icons/maps.jpeg \
+		../../icons/weather.png \
+		../../icons/marketplace.png \
+		../../icons/maps.jpeg \
 		../../icons/media.png \
+		../../icons/play.png \
+		../../icons/home.png \
 		../../icons/bluetooth.png \
 		../../icons/weather.png \
+		../../icons/marketplace.png \
+		../../icons/next.png \
 		../../icons/maps.png \
 		../../icons/call.png \
+		../../icons/previous.png \
+		../../icons/pause.png \
 		../../icons/settings.png
 	/home/issac/Toolchain/sysroots/x86_64-pokysdk-linux/usr/bin/rcc -name icons ../../icons.qrc -o qrc_icons.cpp
 
 qrc_icons.cpp: ../../icons.qrc \
 		../../../Toolchain/sysroots/x86_64-pokysdk-linux/usr/bin/rcc \
+		../../icons/maps.jpeg \
+		../../icons/weather.png \
+		../../icons/marketplace.png \
+		../../icons/maps.jpeg \
 		../../icons/media.png \
+		../../icons/play.png \
+		../../icons/home.png \
 		../../icons/bluetooth.png \
 		../../icons/weather.png \
+		../../icons/marketplace.png \
+		../../icons/next.png \
 		../../icons/maps.png \
 		../../icons/call.png \
+		../../icons/previous.png \
+		../../icons/pause.png \
 		../../icons/settings.png
 	/home/issac/Toolchain/sysroots/x86_64-pokysdk-linux/usr/bin/rcc -name icons ../../icons.qrc -o qrc_icons.cpp
 
@@ -694,9 +723,9 @@ compiler_moc_predefs_clean:
 moc_predefs.h: ../../../Toolchain/sysroots/armv8a-poky-linux/usr/lib/mkspecs/features/data/dummy.cpp
 	aarch64-poky-linux-g++ -march=armv8-a+crc -mbranch-protection=standard -fstack-protector-strong -O2 -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security -Werror=format-security -pipe --sysroot=/home/issac/Toolchain/sysroots/armv8a-poky-linux -g -std=gnu++1z -Wall -Wextra -dM -E -o moc_predefs.h ../../../Toolchain/sysroots/armv8a-poky-linux/usr/lib/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_mainwindow.cpp
+compiler_moc_header_make_all: moc_mainwindow.cpp moc_marketplace.cpp moc_spinner.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_mainwindow.cpp
+	-$(DEL_FILE) moc_mainwindow.cpp moc_marketplace.cpp moc_spinner.cpp
 moc_mainwindow.cpp: ../../mainwindow.h \
 		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QMainWindow \
 		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qmainwindow.h \
@@ -709,9 +738,65 @@ moc_mainwindow.cpp: ../../mainwindow.h \
 		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qpushbutton.h \
 		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QLabel \
 		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qlabel.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QTimer \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qtimer.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QDateTime \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qdatetime.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QMessageBox \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qmessagebox.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QApplication \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qapplication.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/QPainter \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/qpainter.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QGridLayout \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qgridlayout.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QSpacerItem \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qlayoutitem.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/QIcon \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/qicon.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/QScreen \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/qscreen.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QScrollArea \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qscrollarea.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QFile \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qfile.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QJsonDocument \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qjsondocument.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QJsonObject \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qjsonobject.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QJsonArray \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qjsonarray.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QDebug \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qdebug.h \
 		moc_predefs.h \
 		../../../Toolchain/sysroots/x86_64-pokysdk-linux/usr/bin/moc
 	/home/issac/Toolchain/sysroots/x86_64-pokysdk-linux/usr/bin/moc $(DEFINES) --include /home/issac/hmi_gui/build/ledafs-Debug/moc_predefs.h -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/lib/mkspecs/linux-oe-g++ -I/home/issac/hmi_gui -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore -I. -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/include/c++/11.5.0 -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/include/c++/11.5.0/aarch64-poky-linux -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/include/c++/11.5.0/backward -I/home/issac/Toolchain/sysroots/x86_64-pokysdk-linux/usr/lib/aarch64-poky-linux/gcc/aarch64-poky-linux/11.5.0/include -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/lib/aarch64-poky-linux/11.5.0/include -I/home/issac/Toolchain/sysroots/x86_64-pokysdk-linux/usr/lib/aarch64-poky-linux/gcc/aarch64-poky-linux/11.5.0/include-fixed -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/include ../../mainwindow.h -o moc_mainwindow.cpp
+
+moc_marketplace.cpp: ../../marketplace.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QObject \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qobject.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QWidget \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qwidget.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QPushButton \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qpushbutton.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QFileSystemWatcher \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qfilesystemwatcher.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QMap \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qmap.h \
+		moc_predefs.h \
+		../../../Toolchain/sysroots/x86_64-pokysdk-linux/usr/bin/moc
+	/home/issac/Toolchain/sysroots/x86_64-pokysdk-linux/usr/bin/moc $(DEFINES) --include /home/issac/hmi_gui/build/ledafs-Debug/moc_predefs.h -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/lib/mkspecs/linux-oe-g++ -I/home/issac/hmi_gui -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore -I. -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/include/c++/11.5.0 -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/include/c++/11.5.0/aarch64-poky-linux -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/include/c++/11.5.0/backward -I/home/issac/Toolchain/sysroots/x86_64-pokysdk-linux/usr/lib/aarch64-poky-linux/gcc/aarch64-poky-linux/11.5.0/include -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/lib/aarch64-poky-linux/11.5.0/include -I/home/issac/Toolchain/sysroots/x86_64-pokysdk-linux/usr/lib/aarch64-poky-linux/gcc/aarch64-poky-linux/11.5.0/include-fixed -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/include ../../marketplace.h -o moc_marketplace.cpp
+
+moc_spinner.cpp: ../../spinner.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QWidget \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qwidget.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QTimer \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qtimer.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/QPainter \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/qpainter.h \
+		moc_predefs.h \
+		../../../Toolchain/sysroots/x86_64-pokysdk-linux/usr/bin/moc
+	/home/issac/Toolchain/sysroots/x86_64-pokysdk-linux/usr/bin/moc $(DEFINES) --include /home/issac/hmi_gui/build/ledafs-Debug/moc_predefs.h -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/lib/mkspecs/linux-oe-g++ -I/home/issac/hmi_gui -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore -I. -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/include/c++/11.5.0 -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/include/c++/11.5.0/aarch64-poky-linux -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/include/c++/11.5.0/backward -I/home/issac/Toolchain/sysroots/x86_64-pokysdk-linux/usr/lib/aarch64-poky-linux/gcc/aarch64-poky-linux/11.5.0/include -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/lib/aarch64-poky-linux/11.5.0/include -I/home/issac/Toolchain/sysroots/x86_64-pokysdk-linux/usr/lib/aarch64-poky-linux/gcc/aarch64-poky-linux/11.5.0/include-fixed -I/home/issac/Toolchain/sysroots/armv8a-poky-linux/usr/include ../../spinner.h -o moc_spinner.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -746,8 +831,36 @@ main.o: ../../main.cpp ../../mainwindow.h \
 		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qpushbutton.h \
 		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QLabel \
 		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qlabel.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QTimer \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qtimer.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QDateTime \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qdatetime.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QMessageBox \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qmessagebox.h \
 		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QApplication \
-		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qapplication.h
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qapplication.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/QPainter \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/qpainter.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QGridLayout \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qgridlayout.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QSpacerItem \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qlayoutitem.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/QIcon \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/qicon.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/QScreen \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/qscreen.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QScrollArea \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qscrollarea.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QFile \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qfile.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QJsonDocument \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qjsondocument.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QJsonObject \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qjsonobject.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QJsonArray \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qjsonarray.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QDebug \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qdebug.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../../main.cpp
 
 mainwindow.o: ../../mainwindow.cpp ../../mainwindow.h \
@@ -779,14 +892,99 @@ mainwindow.o: ../../mainwindow.cpp ../../mainwindow.h \
 		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/QIcon \
 		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/qicon.h \
 		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/QScreen \
-		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/qscreen.h
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/qscreen.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QScrollArea \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qscrollarea.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QFile \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qfile.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QJsonDocument \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qjsondocument.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QJsonObject \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qjsonobject.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QJsonArray \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qjsonarray.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QDebug \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qdebug.h \
+		../../marketplace.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QObject \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qobject.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QWidget \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qwidget.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QFileSystemWatcher \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qfilesystemwatcher.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QMap \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qmap.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o ../../mainwindow.cpp
+
+marketplace.o: ../../marketplace.cpp ../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QObject \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qobject.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QPushButton \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qpushbutton.h \
+		../../marketplace.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QWidget \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qwidget.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QFileSystemWatcher \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qfilesystemwatcher.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QMap \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qmap.h \
+		../../mainwindow.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QMainWindow \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qmainwindow.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QStackedWidget \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qstackedwidget.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QVBoxLayout \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qboxlayout.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QHBoxLayout \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QLabel \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qlabel.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QTimer \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qtimer.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QDateTime \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qdatetime.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QMessageBox \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qmessagebox.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QApplication \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qapplication.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/QPainter \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/qpainter.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QGridLayout \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qgridlayout.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QSpacerItem \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qlayoutitem.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/QIcon \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/qicon.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/QScreen \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/qscreen.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/QScrollArea \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtWidgets/qscrollarea.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QFile \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qfile.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QJsonDocument \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qjsondocument.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QJsonObject \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qjsonobject.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QJsonArray \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qjsonarray.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QDebug \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qdebug.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/QVariant \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtCore/qvariant.h \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/QMovie \
+		../../../Toolchain/sysroots/armv8a-poky-linux/usr/include/QtGui/qmovie.h \
+		../../spinner.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o marketplace.o ../../marketplace.cpp
 
 qrc_icons.o: qrc_icons.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qrc_icons.o qrc_icons.cpp
 
 moc_mainwindow.o: moc_mainwindow.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_mainwindow.o moc_mainwindow.cpp
+
+moc_marketplace.o: moc_marketplace.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_marketplace.o moc_marketplace.cpp
+
+moc_spinner.o: moc_spinner.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_spinner.o moc_spinner.cpp
 
 ####### Install
 

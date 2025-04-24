@@ -60,6 +60,7 @@ public:
     int windowHeight;
     QPushButton* createButton(const QString &text);
     void updateDateTime();
+    void handleInstallRequest(const QString &featureName);
 
 private slots:
 

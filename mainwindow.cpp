@@ -65,7 +65,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Second row of buttons
     QHBoxLayout *row2 = new QHBoxLayout();
-    row2->addWidget(callButton); // Maps button will occupy a larger space
+    row2->addWidget(callButton);
     row2->addWidget(weatherButton);
     row2->addWidget(settingsButton);
     row2->setSpacing(windowWidth *0.02);
@@ -93,6 +93,8 @@ MainWindow::MainWindow(QWidget *parent)
     QWidget *mapsPage = new QLabel("Maps Page");
     marketplace *mp = new marketplace(this);
     connect(mp, &marketplace::homeButtonClicked, this, &MainWindow::goToHomePage);
+    connect(mp, &marketplace::installRequested,
+            this, &MainWindow::handleInstallRequest);
 
     QWidget *marketplacePage = mp->createMarketplacePage();
 
@@ -144,8 +146,8 @@ void MainWindow::updateDateTime()
 {
     QString dateTime = QDateTime::currentDateTime().toString("ddd, MMM dd yyyy");
     QString time = QDateTime::currentDateTime().toString("hh:mm AP");
-    dateLabel->setText(dateTime);  // Update Date
-    timeLabel->setText(time);      // Update Time
+    dateLabel->setText(dateTime);
+    timeLabel->setText(time);
 }
 
 QPushButton* MainWindow::createIconButton(const QString &iconPath)
@@ -187,17 +189,17 @@ QPushButton* MainWindow::createmediaButton()
         "QPushButton {"
         "  border: none;"
         "  border-radius: 20px;"
-        "  background: transparent;"  // Remove background
+        "  background: transparent;"
         "}"
         );
 
-    // Create the inner buttons
-    QPushButton *playPauseButton = createWhiteIconButton(":/icons/icons/play.png");  // Play icon (you can change to play/pause logic later)
+
+    QPushButton *playPauseButton = createWhiteIconButton(":/icons/icons/play.png");
     QPushButton *nextButton = createWhiteIconButton(":/icons/icons/next.png");
     QPushButton *prevButton = createWhiteIconButton(":/icons/icons/previous.png");
 
 
-    // Layout for the three inner buttons
+
     QVBoxLayout *mediaLayout = new QVBoxLayout();
     QHBoxLayout *innerLayout = new QHBoxLayout();
     innerLayout->addWidget(prevButton);
@@ -213,15 +215,15 @@ QPushButton* MainWindow::createmediaButton()
     mediaLayout->setAlignment(Qt::AlignCenter);
     mediaLayout->addWidget(songLabel);
     mediaLayout->addLayout(innerLayout);
-    // Set layout to the main button (the media button)
+
     QWidget *mediaWidget = new QWidget();
     mediaWidget->setLayout(mediaLayout);
 
-    // Set the media widget as the content of the media button
+
     button->setLayout(new QVBoxLayout());
     button->layout()->addWidget(mediaWidget);
 
-    // Connect button functionality for play/pause, next, previous
+
     connect(playPauseButton, &QPushButton::clicked, this, &MainWindow::togglePlayPause);
     connect(nextButton, &QPushButton::clicked, this, &MainWindow::playNextTrack);
     connect(prevButton, &QPushButton::clicked, this, &MainWindow::playPreviousTrack);
@@ -301,12 +303,12 @@ void MainWindow::togglePlayPause() {
 }
 
 void MainWindow::playNextTrack() {
-    // Logic for playing the next track
+    //TODO: Logic for playing the next track
     qDebug() << "Next track";
 }
 
 void MainWindow::playPreviousTrack() {
-    // Logic for playing the previous track
+    //TODO: Logic for playing the previous track
     qDebug() << "Previous track";
 }
 
@@ -317,27 +319,27 @@ void MainWindow::playPreviousTrack() {
 // Slot implementations for each page
 
 void MainWindow::goToHomePage() {
-    stackedWidget->setCurrentIndex(0); // Switch to Home Page (index 0)
+    stackedWidget->setCurrentIndex(0);
 }
 
 void MainWindow::showMediaPage() {
-    stackedWidget->setCurrentIndex(1); // Switch to Media Page
+    stackedWidget->setCurrentIndex(1);
 }
 
 void MainWindow::showSettingsPage() {
-    stackedWidget->setCurrentIndex(2); // Switch to Settings Page
+    stackedWidget->setCurrentIndex(2);
 }
 
 void MainWindow::showNewsPage() {
-    stackedWidget->setCurrentIndex(3); // Switch to News Page
+    stackedWidget->setCurrentIndex(3);
 }
 
 void MainWindow::showWeatherPage() {
-    stackedWidget->setCurrentIndex(4); // Switch to Weather Page
+    stackedWidget->setCurrentIndex(4);
 }
 
 void MainWindow::showMapsPage() {
-    stackedWidget->setCurrentIndex(5); // Switch to Maps Page
+    stackedWidget->setCurrentIndex(5);
 }
 
 
@@ -356,7 +358,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
 
     QRadialGradient gradient(center, radius * 5);
     gradient.setColorAt(0, QColor(10, 10, 10));
-    gradient.setColorAt(1, QColor(79, 51, 79));  // deep purplish gradient
+    gradient.setColorAt(1, QColor(79, 51, 79));
 
     painter.setBrush(gradient);
     painter.setPen(Qt::NoPen);
@@ -365,4 +367,57 @@ void MainWindow::paintEvent(QPaintEvent *event)
     QMainWindow::paintEvent(event);
 }
 
+
+
+void MainWindow::handleInstallRequest(const QString &featureName) {
+    QString path = QCoreApplication::applicationDirPath() + "/json/requests.json";
+
+    QFile file(path);
+    QJsonArray requestArray;
+
+    if (file.exists() && file.open(QIODevice::ReadOnly)) {
+        QByteArray data = file.readAll();
+        file.close();
+
+        QJsonParseError error;
+        QJsonDocument doc = QJsonDocument::fromJson(data, &error);
+        if (error.error == QJsonParseError::NoError && doc.isArray()) {
+            requestArray = doc.array();
+        }
+    }
+
+    bool featurefound = false;
+    for (const QJsonValue &val : requestArray) {
+        QJsonObject reqObj = val.toObject();
+        if (reqObj.contains("name") && reqObj.value("name").toString() == featureName) {
+            featurefound = true;
+            break;
+        }
+    }
+
+    if(!featurefound){
+        // Add new item to array
+        QJsonObject newRequest;
+        newRequest["name"] = featureName;
+        newRequest["timestamp"] = QDateTime::currentDateTime().toString(Qt::ISODate);
+        newRequest["status"] = "pending";
+        requestArray.append(newRequest);
+
+        // Write back to file
+        if (file.open(QIODevice::WriteOnly)) {
+            QJsonDocument saveDoc(requestArray);
+            file.write(saveDoc.toJson());
+            file.close();
+            QMessageBox::information(this, "Feature Installing",
+                                     QString("The feature '%1' will be installed shortly...").arg(featureName));
+        } else {
+            qWarning() << "Failed to open install_requests.json for writing.";
+        }
+    }else{
+        QMessageBox::information(this, "Feature Installing",
+                                 QString("PLease wait feature is currently getting installed..."));
+
+    }
+
+}
 

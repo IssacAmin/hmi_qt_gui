@@ -16,7 +16,8 @@ SOURCES += \
 
 HEADERS += \
     mainwindow.h \
-    marketplace.h
+    marketplace.h \
+    spinner.h
 
 FORMS += \
     mainwindow.ui
