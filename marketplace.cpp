@@ -234,13 +234,19 @@ marketplace::marketplace(QObject *parent)
 
 
     void marketplace::showSpinnerOnButton(QPushButton *button) {
-        button->setEnabled(false);         // disable button while loading
-        button->setText("");               // remove text
+        button->setEnabled(false);
+        button->setText("");
 
-        SpinnerWidget *spinner = new SpinnerWidget(button);  // parent is button
+        SpinnerWidget *spinner = new SpinnerWidget(button);
         spinner->move((button->width() - spinner->width()) / 2,
                       (button->height() - spinner->height()) / 2);
         spinner->show();
+
+        // Store spinner so we can remove it later
+        QString name = featureButtons.key(button);
+        if (!name.isEmpty()) {
+            spinnerMap[name] = spinner;
+        }
     }
 
 
@@ -300,6 +306,13 @@ marketplace::marketplace(QObject *parent)
             if (!btn) continue;
 
             if (installedSet.contains(name)) {
+                if (spinnerMap.contains(name)) {
+                    SpinnerWidget *spinner = spinnerMap.take(name);
+                    if (spinner) {
+                        spinner->deleteLater();
+                    }
+                }
+
                 btn->setText("Installed");
                 btn->setEnabled(false);
                 btn->setStyleSheet(
@@ -312,6 +325,13 @@ marketplace::marketplace(QObject *parent)
                     "}"
                     );
             } else {
+                if (spinnerMap.contains(name)) {
+                    SpinnerWidget *spinner = spinnerMap.take(name);
+                    if (spinner) {
+                        spinner->deleteLater();
+                    }
+                }
+
                 btn->setText("Install");
                 btn->setEnabled(true);
                 btn->setStyleSheet(
@@ -327,6 +347,7 @@ marketplace::marketplace(QObject *parent)
                     "}"
                     );
             }
+
         }
     }
 

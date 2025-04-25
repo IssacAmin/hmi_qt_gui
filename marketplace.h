@@ -6,6 +6,7 @@
 #include <QPushButton>
 #include <QFileSystemWatcher>
 #include <QMap>
+#include "spinner.h"
 
 class marketplace : public QObject {
     Q_OBJECT
@@ -20,6 +21,7 @@ public:
     QMap<QString, QPushButton*> featureButtons;
     void setupFileWatcher();
     void updateInstalledStates();
+    QMap<QString, SpinnerWidget*> spinnerMap;
 private:
     QString installedFeaturesPath;
 signals:
