@@ -62,8 +62,6 @@ public:
     void updateDateTime();
     void handleInstallRequest(const QString &featureName);
 
-private slots:
-
 
 private:
 

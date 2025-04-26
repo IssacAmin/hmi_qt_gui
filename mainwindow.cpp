@@ -96,7 +96,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(mp, &marketplace::installRequested,
             this, &MainWindow::handleInstallRequest);
 
-    QWidget *marketplacePage = mp->createMarketplacePage();
+    QWidget* marketplacePage = mp->createMarketplacePage();
 
 
     // Set up layout of homePage with your buttons
@@ -134,7 +134,38 @@ MainWindow::MainWindow(QWidget *parent)
         stackedWidget->setCurrentIndex(4);
     });
     connect(marketPlaceButton, &QPushButton::clicked, this, [=]() {
-        stackedWidget->setCurrentIndex(5);
+
+        QWidget *oldPage = stackedWidget->widget(5);
+        if (oldPage) {
+            stackedWidget->setCurrentIndex(5);
+        }else{
+            QJsonObject jsonObj;
+            jsonObj["message"] = "Requesting marketplace items";
+
+            // Convert to JSON document
+            QJsonDocument jsonDoc(jsonObj);
+
+            // Open the file for writing
+            QString filePath = QCoreApplication::applicationDirPath() + "/json/marketplace_requests.json";
+            QFile file(filePath);
+            if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+                qWarning() << "Failed to open file for writing:" << file.errorString();
+            }
+
+            // Write the JSON data
+            file.write(jsonDoc.toJson(QJsonDocument::Indented));
+            file.close();
+
+            // Create a fresh instance of the marketplace and its page
+            marketplace *mp = new marketplace(this);
+            connect(mp, &marketplace::homeButtonClicked, this, &MainWindow::goToHomePage);
+            connect(mp, &marketplace::installRequested, this, &MainWindow::handleInstallRequest);
+
+            QWidget *marketplacePage = mp->createMarketplacePage();
+            stackedWidget->insertWidget(5, marketplacePage);
+            stackedWidget->setCurrentIndex(5);
+        }
+
     });
 
     stackedWidget->setCurrentIndex(0);
@@ -227,6 +258,7 @@ QPushButton* MainWindow::createmediaButton()
     connect(playPauseButton, &QPushButton::clicked, this, &MainWindow::togglePlayPause);
     connect(nextButton, &QPushButton::clicked, this, &MainWindow::playNextTrack);
     connect(prevButton, &QPushButton::clicked, this, &MainWindow::playPreviousTrack);
+
 
     return button;
 }
@@ -409,13 +441,13 @@ void MainWindow::handleInstallRequest(const QString &featureName) {
             file.write(saveDoc.toJson());
             file.close();
             QMessageBox::information(this, "Feature Installing",
-                                     QString("The feature '%1' will be installed shortly...").arg(featureName));
+                                     QString("The feature '%1' will be installed at next Boot.").arg(featureName));
         } else {
             qWarning() << "Failed to open install_requests.json for writing.";
         }
     }else{
         QMessageBox::information(this, "Feature Installing",
-                                 QString("PLease wait feature is currently getting installed..."));
+                                QString("The feature '%1' will be installed at next Boot.").arg(featureName));
 
     }
 
