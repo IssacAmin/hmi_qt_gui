@@ -1,22 +1,15 @@
 <RCC>
     <qresource prefix="/icons">
-        <file>icons/bluetooth.png</file>
-        <file>icons/call.png</file>
-        <file>icons/maps.png</file>
-        <file>icons/media.png</file>
-        <file>icons/settings.png</file>
-        <file>icons/weather.png</file>
-        <file>icons/marketplace.png</file>
-        <file>icons/maps.jpeg</file>
+        <file>icons/bluetooth.PNG</file>
+        <file>icons/call.PNG</file>
+        <file>icons/gear.PNG</file>
+        <file>icons/home.png</file>
+        <file>icons/maps.PNG</file>
+        <file>icons/marketplace.PNG</file>
         <file>icons/next.png</file>
         <file>icons/pause.png</file>
         <file>icons/play.png</file>
         <file>icons/previous.png</file>
-        <file>icons/home.png</file>
-    </qresource>
-    <qresource prefix="/">
-        <file>icons/weather.png</file>
-        <file>icons/marketplace.png</file>
-        <file>icons/maps.jpeg</file>
+        <file>icons/weather.PNG</file>
     </qresource>
 </RCC>

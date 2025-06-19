@@ -1,22 +1,3 @@
-#include <QObject>
-#include <QPushButton>
-#include <QScreen>
-#include <QGuiApplication>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QScrollArea>
-#include <QLabel>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
-#include <QFile>
-#include <QCoreApplication>
-#include <QPixmap>
-#include <QImage>
-#include <QColor>
-#include <QFrame>
-
-
 #include "marketplace.h"
 #include "spinner.h"
 
@@ -25,14 +6,9 @@ marketplace::marketplace(QObject *parent)
 {
 }
 
-// Global spinner map is already a member variable:
-// QMap<QString, SpinnerWidget*> spinnerMap;
-// QMap<QString, QPushButton*> featureButtons;
-// QString installedFeaturesPath;
-// int windowWidth, windowHeight;
+
 
 QWidget* marketplace::createMarketplacePage() {
-
     QScreen *screen = QGuiApplication::primaryScreen();
     QRect screenGeometry = screen->geometry();
     int screenWidth = screenGeometry.width();
@@ -67,31 +43,123 @@ QWidget* marketplace::createMarketplacePage() {
     homeButton->setStyleSheet("QPushButton { border: none; background: transparent; padding: 0; }");
 
     QObject::connect(homeButton, &QPushButton::clicked, this, &marketplace::homeButtonClicked);
+    navLayout->addWidget(homeButton);
 
-    // --- Scrollable List ---
+    // --- Scrollable List Container (empty until data is received) ---
     QScrollArea *scrollArea = new QScrollArea();
     QWidget *listContainer = new QWidget();
-    QVBoxLayout *listLayout = new QVBoxLayout(listContainer);
+    listLayout = new QVBoxLayout(listContainer);  // assign to member for later population
 
-    QString jsonPath = QCoreApplication::applicationDirPath() + "/json/marketplace.json";
-    installedFeaturesPath = QCoreApplication::applicationDirPath() + "/json/installed_features.json";
+    scrollArea->setWidget(listContainer);
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setStyleSheet("background-color: transparent;");
 
-    QFile file(jsonPath);
-    if (!file.open(QIODevice::ReadOnly)) {
-        qWarning() << "Failed to open JSON file:" << jsonPath;
+    // Send async HTTP GET request to port 8080
+    networkManager = new QNetworkAccessManager(this);
+    connect(networkManager, &QNetworkAccessManager::finished, this, &marketplace::handleMarketplaceReply);
+    QNetworkRequest request(QUrl("http://localhost:8080/marketplace"));
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    networkManager->get(request);
+
+
+    // Add scroll and nav layouts
+    mainLayout->addWidget(scrollArea);
+    mainLayout->addLayout(navLayout);
+
+    // --- Spinner Overlay ---
+    spinnerOverlay = new QWidget(page);
+    spinnerOverlay->setObjectName("spinnerOverlay");
+    spinnerOverlay->setStyleSheet("#spinnerOverlay { background-color: rgba(0, 0, 0, 160); }");
+    spinnerOverlay->setAttribute(Qt::WA_TranslucentBackground);
+    spinnerOverlay->setAttribute(Qt::WA_NoSystemBackground);
+    spinnerOverlay->setAttribute(Qt::WA_StyledBackground, true);
+    spinnerOverlay->setAutoFillBackground(false);
+    spinnerOverlay->setGeometry(page->rect());
+    spinnerOverlay->raise();
+
+
+    loadingSpinner = new SpinnerWidget(spinnerOverlay);
+    loadingSpinner->setFixedSize(64, 64);
+    loadingSpinner->move((spinnerOverlay->width() - loadingSpinner->width()) / 2,
+                         (spinnerOverlay->height() - loadingSpinner->height()) / 2);
+    loadingSpinner->show();
+    spinnerOverlay->show();
+
+    // Track resize events so overlay resizes with page
+    page->installEventFilter(this);
+
+    return page;
+
+}
+
+bool marketplace::eventFilter(QObject *watched, QEvent *event) {
+    if (spinnerOverlay && watched == spinnerOverlay->parent() && event->type() == QEvent::Resize) {
+        QWidget *page = qobject_cast<QWidget *>(watched);
+        if (page) {
+            spinnerOverlay->setGeometry(page->rect());
+            if (loadingSpinner) {
+                loadingSpinner->move((spinnerOverlay->width() - loadingSpinner->width()) / 2,
+                                     (spinnerOverlay->height() - loadingSpinner->height()) / 2);
+            }
+        }
+    }
+    return QObject::eventFilter(watched, event);
+}
+
+
+void marketplace::handleMarketplaceReply(QNetworkReply *reply) {
+    if (loadingSpinner) loadingSpinner->hide();
+    if (spinnerOverlay) spinnerOverlay->hide();
+    if (reply->error() == QNetworkReply::NoError) {
+        QByteArray response = reply->readAll();
+        QJsonParseError err;
+        QJsonDocument doc = QJsonDocument::fromJson(response, &err);
+
+        if (err.error == QJsonParseError::NoError) {
+            populateMarketplace(doc);
+        } else {
+            QVBoxLayout *centerLayout = new QVBoxLayout;
+            centerLayout->addStretch();
+
+            QLabel *emptyLabel = new QLabel("No items available in the marketplace.");
+            emptyLabel->setStyleSheet("color: white; font-size: 36px;");
+            emptyLabel->setAlignment(Qt::AlignCenter);
+
+            centerLayout->addWidget(emptyLabel);
+            centerLayout->addStretch();
+            listLayout->addLayout(centerLayout);
+            return;
+            qDebug() << "JSON parse error:" << err.errorString();
+        }
+    } else {
+        QVBoxLayout *centerLayout = new QVBoxLayout;
+        centerLayout->addStretch();
+
+        QLabel *emptyLabel = new QLabel("No items available in the marketplace.");
+        emptyLabel->setStyleSheet("color: white; font-size: 36px;");
+        emptyLabel->setAlignment(Qt::AlignCenter);
+
+        centerLayout->addWidget(emptyLabel);
+        centerLayout->addStretch();
+        listLayout->addLayout(centerLayout);
+        return;
+        qDebug() << "Network error:" << reply->errorString();
     }
 
-    QByteArray data = file.readAll();
-    file.close();
+    reply->deleteLater();
+}
 
-    QJsonParseError parseError;
-    QJsonDocument doc = QJsonDocument::fromJson(data, &parseError);
-    if (parseError.error != QJsonParseError::NoError) {
-        qWarning() << "JSON parse error:" << parseError.errorString();
-    }
 
+void marketplace::populateMarketplace(QJsonDocument doc) {
     QJsonObject rootObj = doc.object();
     QJsonArray items = rootObj.value("marketplace").toArray();
+
+    // Clear previous items if any
+    QLayoutItem *child;
+    while ((child = listLayout->takeAt(0)) != nullptr) {
+        if (child->widget()) child->widget()->deleteLater();
+        delete child;
+    }
 
     if (items.isEmpty()) {
         QVBoxLayout *centerLayout = new QVBoxLayout;
@@ -103,21 +171,16 @@ QWidget* marketplace::createMarketplacePage() {
 
         centerLayout->addWidget(emptyLabel);
         centerLayout->addStretch();
-
-        QLayoutItem *child;
-        while ((child = listLayout->takeAt(0)) != nullptr) {
-            delete child->widget();
-            delete child;
-        }
         listLayout->addLayout(centerLayout);
+        return;
     }
 
     for (const QJsonValue &val : items) {
         QJsonObject obj = val.toObject();
         QString name = obj.value("name").toString();
         QString price = obj.value("price").toString();
-
-        bool installed = isFeatureInstalled(name);
+        QString id = obj.value("id").toString();
+        bool installed =obj.value("installed").toBool();
 
         QWidget *itemWidget = new QWidget;
         itemWidget->setStyleSheet("background: transparent; padding: 10px;");
@@ -140,9 +203,7 @@ QWidget* marketplace::createMarketplacePage() {
         if (installed) {
             installButton->setText("Installed");
             installButton->setEnabled(false);
-            installButton->setStyleSheet(
-                "QPushButton { background-color: grey; color: white; border: none; padding: 6px 12px; border-radius: 4px; }"
-                );
+            installButton->setStyleSheet("background-color: grey; color: white; border: none; border-radius: 4px;");
         } else if (spinnerMap.contains(name)) {
             installButton->setText("");
             installButton->setEnabled(false);
@@ -151,13 +212,12 @@ QWidget* marketplace::createMarketplacePage() {
             installButton->setText("Install");
             installButton->setStyleSheet(
                 "QPushButton { background-color: #4CAF50; color: white; border: none; padding: 6px 12px; border-radius: 4px; }"
-                "QPushButton:hover { background-color: #45a049; }"
-                );
+                "QPushButton:hover { background-color: #45a049; }");
         }
 
-        connect(installButton, &QPushButton::clicked, this, [this, installButton, name]() {
-            showSpinnerOnButton(installButton, name);
-            emit installRequested(name);
+        connect(installButton, &QPushButton::clicked, this, [this, installButton, id, name]() {
+            showSpinnerOnButton(installButton, id);
+            emit installRequested(id, name);
         });
 
         featureButtons[name] = installButton;
@@ -165,8 +225,8 @@ QWidget* marketplace::createMarketplacePage() {
         itemLayout->addLayout(textLayout);
         itemLayout->addStretch();
         itemLayout->addWidget(installButton);
-
         itemWidget->setLayout(itemLayout);
+
         listLayout->addWidget(itemWidget);
 
         QFrame *separator = new QFrame();
@@ -177,18 +237,8 @@ QWidget* marketplace::createMarketplacePage() {
 
         listLayout->addWidget(separator);
     }
-
-    listContainer->setLayout(listLayout);
-    scrollArea->setWidget(listContainer);
-    scrollArea->setWidgetResizable(true);
-    scrollArea->setStyleSheet("background-color: transparent;");
-
-    mainLayout->addWidget(scrollArea);
-    navLayout->addWidget(homeButton);
-    mainLayout->addLayout(navLayout);
-
-    return page;
 }
+
 
 void marketplace::showSpinnerOnButton(QPushButton *button, const QString &name) {
     button->setEnabled(false);
@@ -206,51 +256,5 @@ void marketplace::showSpinnerOnButton(QPushButton *button, const QString &name) 
                       (button->height() - spinner->height()) / 2);
         spinner->show();
         spinnerMap[name] = spinner;
-    }
-}
-
-bool marketplace::isFeatureInstalled(const QString &name) {
-    QFile installed_features_file(installedFeaturesPath);
-    if (!installed_features_file.open(QIODevice::ReadOnly)) {
-        qWarning() << "Failed to open installed features file:" << installedFeaturesPath;
-        return false;
-    }
-
-    QByteArray installedData = installed_features_file.readAll();
-    installed_features_file.close();
-
-    QJsonParseError installedParseError;
-    QJsonDocument installedDoc = QJsonDocument::fromJson(installedData, &installedParseError);
-
-    if (installedParseError.error != QJsonParseError::NoError) {
-        qWarning() << "Installed features parse error:" << installedParseError.errorString();
-        return false;
-    }
-
-    QJsonObject rootObj = installedDoc.object();
-    QJsonArray features = rootObj.value("features").toArray();
-
-    for (const QJsonValue &feature : features) {
-        QJsonObject installedObj = feature.toObject();
-        if (installedObj.contains("name") && installedObj.value("name").toString() == name) {
-            return installedObj.value("installed").toBool();
-        }
-    }
-
-    return false;
-}
-
-void marketplace::markFeatureAsInstalled(const QString &name) {
-    if (featureButtons.contains(name)) {
-        QPushButton *button = featureButtons[name];
-        button->setEnabled(false);
-        button->setText("Installed");
-        button->setStyleSheet("QPushButton { background-color: grey; color: white; border: none; }");
-
-        if (spinnerMap.contains(name)) {
-            SpinnerWidget *spinner = spinnerMap[name];
-            spinner->deleteLater();
-            spinnerMap.remove(name);
-        }
     }
 }

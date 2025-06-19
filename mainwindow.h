@@ -27,6 +27,12 @@
 #include <QJsonArray>
 #include <QPushButton>
 #include <QDebug>
+#include <QCoreApplication>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QUrl>
+#include <QObject>
 
 class MainWindow : public QMainWindow
 {
@@ -60,10 +66,11 @@ public:
     int windowHeight;
     QPushButton* createButton(const QString &text);
     void updateDateTime();
-    void handleInstallRequest(const QString &featureName);
-
+    void handleInstallRequest(const QString &id, const QString &name);
 
 private:
+    QWidget *marketplacePage = nullptr;
+    QWidget* settingsPage = nullptr;
 
 };
 

@@ -1,4 +1,4 @@
-QT       += core gui
+QT       += core gui network
 QT       += widgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -12,11 +12,13 @@ CONFIG += c++17
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
-    marketplace.cpp
+    marketplace.cpp \
+    settings.cpp
 
 HEADERS += \
     mainwindow.h \
     marketplace.h \
+    settings.h \
     spinner.h
 
 FORMS += \
@@ -28,10 +30,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
-    icons/home.png \
-    icons/media.png \
-    icons/settings.png
+    icons/media.png
 
 RESOURCES += \
-    icons.qrc \
     icons.qrc

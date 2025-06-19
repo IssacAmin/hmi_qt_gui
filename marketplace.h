@@ -6,8 +6,27 @@
 #include <QPushButton>
 #include <QMap>
 #include <QString>
-
-class SpinnerWidget; // Forward declare SpinnerWidget
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QJsonDocument>
+#include <QObject>
+#include <QPushButton>
+#include <QScreen>
+#include <QGuiApplication>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QScrollArea>
+#include <QLabel>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QFile>
+#include <QCoreApplication>
+#include <QPixmap>
+#include <QImage>
+#include <QColor>
+#include <QFrame>
+class SpinnerWidget;
 
 class marketplace : public QObject
 {
@@ -15,29 +34,34 @@ class marketplace : public QObject
 
 public:
     explicit marketplace(QObject *parent = nullptr);
-
     QWidget* createMarketplacePage();
-    void markFeatureAsInstalled(const QString &name);
 
 signals:
     void homeButtonClicked();
-    void installRequested(const QString &featureName);
+    void installRequested(const QString &id, const QString &featureName);
 
+private slots:
+    void handleMarketplaceReply(QNetworkReply *reply);
 private:
+    QWidget *marketplacePage = nullptr;
 private:
-    QWidget *marketplacePage = nullptr;  // <-- store the created page
+    SpinnerWidget *loadingSpinner = nullptr;
+    QWidget *spinnerOverlay = nullptr;
+    void populateMarketplace(QJsonDocument doc);
 
+    QNetworkAccessManager *networkManager = nullptr;
+    QVBoxLayout *listLayout = nullptr;
 
     void showSpinnerOnButton(QPushButton *button, const QString &name);
     bool isFeatureInstalled(const QString &name);
 
-    QMap<QString, SpinnerWidget*> spinnerMap;    // Maps feature name -> spinner
-    QMap<QString, QPushButton*> featureButtons;  // Maps feature name -> install button
-    QString installedFeaturesPath;
+    QMap<QString, SpinnerWidget*> spinnerMap;
+    QMap<QString, QPushButton*> featureButtons;
 
     int windowWidth;
     int windowHeight;
-
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
 };
 
 #endif // MARKETPLACE_H

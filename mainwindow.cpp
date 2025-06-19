@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "marketplace.h"
-
+#include "settings.h"
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -21,10 +21,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Set theme
     QPalette darkPalette;
-    darkPalette.setColor(QPalette::Window, QColor(30, 30, 30));
-    darkPalette.setColor(QPalette::WindowText, Qt::white);
-    darkPalette.setColor(QPalette::Button, QColor(45, 45, 45));
-    darkPalette.setColor(QPalette::ButtonText, Qt::white);
+    darkPalette.setColor(QPalette::Window, QColor(249, 250, 251));
+    darkPalette.setColor(QPalette::WindowText, Qt::black);
+    darkPalette.setColor(QPalette::Button, QColor(255, 255, 255));
+    darkPalette.setColor(QPalette::ButtonText, Qt::black);
     QApplication::setPalette(darkPalette);
 
     // Central Widget
@@ -47,13 +47,13 @@ MainWindow::MainWindow(QWidget *parent)
     timeLayout->setAlignment(Qt::AlignCenter);
 
     // Buttons
-    QPushButton *callButton = createIconButton(":/icons/icons/call.png");
+    QPushButton *callButton = createIconButton(":/icons/icons/call.PNG");
     QPushButton *mediaButton = createmediaButton();
-    QPushButton *settingsButton = createIconButton(":/icons/icons/settings.png");
-    QPushButton *bluetoothButton = createIconButton(":/icons/icons/bluetooth.png");
-    QPushButton *marketPlaceButton = createIconButton(":/icons/icons/marketplace.png");
-    QPushButton *mapsButton = createIconButton(":/icons/icons/maps.png");
-    QPushButton *weatherButton = createIconButton(":/icons/icons/weather.png");
+    QPushButton *settingsButton = createIconButton(":/icons/icons/gear.PNG");
+    QPushButton *bluetoothButton = createIconButton(":/icons/icons/bluetooth.PNG");
+    QPushButton *marketPlaceButton = createIconButton(":/icons/icons/marketplace.PNG");
+    QPushButton *mapsButton = createIconButton(":/icons/icons/maps.PNG");
+    QPushButton *weatherButton = createIconButton(":/icons/icons/weather.PNG");
 
     // Layout for Buttons
     QVBoxLayout *buttonsLayout = new QVBoxLayout();
@@ -88,7 +88,7 @@ MainWindow::MainWindow(QWidget *parent)
     stackedWidget = new QStackedWidget(this);
     QWidget *homePage = new QWidget();
     QWidget *mediaPage = new QLabel("Media Page");
-    QWidget *settingsPage = new QLabel("Settings Page");
+    Settings *settingsPage = new Settings();
     QWidget *weatherPage = new QLabel("Weather Page");
     QWidget *mapsPage = new QLabel("Maps Page");
     marketplace *mp = new marketplace(this);
@@ -109,6 +109,9 @@ MainWindow::MainWindow(QWidget *parent)
     stackedWidget->addWidget(weatherPage);     // index 3
     stackedWidget->addWidget(mapsPage);        // index 4
     stackedWidget->addWidget(marketplacePage); // index 5
+
+
+
 
     // Layout stacking and navigation
     QVBoxLayout *mainLayout = new QVBoxLayout();
@@ -133,40 +136,42 @@ MainWindow::MainWindow(QWidget *parent)
     connect(mapsButton, &QPushButton::clicked, this, [=]() {
         stackedWidget->setCurrentIndex(4);
     });
-    connect(marketPlaceButton, &QPushButton::clicked, this, [=]() {
 
-        QWidget *oldPage = stackedWidget->widget(5);
-        if (oldPage) {
-            stackedWidget->setCurrentIndex(5);
-        }else{
-            QJsonObject jsonObj;
-            jsonObj["message"] = "Requesting marketplace items";
 
-            // Convert to JSON document
-            QJsonDocument jsonDoc(jsonObj);
-
-            // Open the file for writing
-            QString filePath = QCoreApplication::applicationDirPath() + "/json/marketplace_requests.json";
-            QFile file(filePath);
-            if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-                qWarning() << "Failed to open file for writing:" << file.errorString();
-            }
-
-            // Write the JSON data
-            file.write(jsonDoc.toJson(QJsonDocument::Indented));
-            file.close();
-
-            // Create a fresh instance of the marketplace and its page
-            marketplace *mp = new marketplace(this);
-            connect(mp, &marketplace::homeButtonClicked, this, &MainWindow::goToHomePage);
-            connect(mp, &marketplace::installRequested, this, &MainWindow::handleInstallRequest);
-
-            QWidget *marketplacePage = mp->createMarketplacePage();
-            stackedWidget->insertWidget(5, marketplacePage);
-            stackedWidget->setCurrentIndex(5);
+    connect(settingsButton, &QPushButton::clicked, this, [this]() {
+        if (this->settingsPage) {
+            stackedWidget->removeWidget(this->settingsPage);
+            delete this->settingsPage;
+            this->settingsPage = nullptr;
         }
 
+        Settings *sp = new Settings(this);
+        connect(sp, &Settings::homeButtonClicked, this, &MainWindow::goToHomePage);
+        this->settingsPage = sp;
+        stackedWidget->addWidget(this->settingsPage);
+        stackedWidget->setCurrentWidget(this->settingsPage);
     });
+
+
+
+    connect(marketPlaceButton, &QPushButton::clicked, this, [this]() {
+        // If an old marketplace page exists, remove and delete it
+        if (this->marketplacePage) {
+            this->stackedWidget->removeWidget(this->marketplacePage);
+            delete this->marketplacePage;
+            this->marketplacePage = nullptr;
+        }
+
+        // Create a new marketplace page
+        marketplace *mp = new marketplace(this);
+        connect(mp, &marketplace::homeButtonClicked, this, &MainWindow::goToHomePage);
+        connect(mp, &marketplace::installRequested, this, &MainWindow::handleInstallRequest);
+
+        this->marketplacePage = mp->createMarketplacePage();
+        this->stackedWidget->addWidget(this->marketplacePage);
+        this->stackedWidget->setCurrentWidget(this->marketplacePage);
+    });
+
 
     stackedWidget->setCurrentIndex(0);
     setCentralWidget(centralWidget);
@@ -183,21 +188,25 @@ void MainWindow::updateDateTime()
 
 QPushButton* MainWindow::createIconButton(const QString &iconPath)
 {
+    int iconSize = qMin(this->width(), this->height()) * 0.15;
     QPushButton *button = new QPushButton();
     QIcon buttonIcon(iconPath);
     button->setIcon(buttonIcon);
 
-    int iconSize = qMin(this->width(), this->height()) * 0.15;
-    button->setIconSize(QSize(iconSize, iconSize));
+    // Set a fixed size for the button
+    //button->setFixedSize(iconSize, iconSize);  // You can tweak this size
 
+    // Set a larger icon size (can be larger than the default)
+    button->setIconSize(QSize(iconSize * 1.5, iconSize*1.5));  // Enlarge icon, keep button size fixed
+
+    // Adjust stylesheet (no or minimal padding)
     button->setStyleSheet(
         "QPushButton {"
         "  background-color: #2f2236;"
         "  border: none;"
-        "  padding: 10px;"
+        "  padding: 0px;"  // Set to 0 to allow max icon space
         "  color: white;"
-        "  font-size: 18px;"
-        "  border-radius: 20px"
+        "  border-radius: 20px;"
         "}"
         "QPushButton:hover {"
         "  background-color: #404040;"
@@ -352,15 +361,20 @@ void MainWindow::playPreviousTrack() {
 
 void MainWindow::goToHomePage() {
     stackedWidget->setCurrentIndex(0);
+
+    if (marketplacePage) {
+        stackedWidget->removeWidget(marketplacePage);  // Remove from stack
+        delete marketplacePage;                         // Delete it
+        marketplacePage = nullptr;
+    }
 }
+
 
 void MainWindow::showMediaPage() {
     stackedWidget->setCurrentIndex(1);
 }
 
-void MainWindow::showSettingsPage() {
-    stackedWidget->setCurrentIndex(2);
-}
+
 
 void MainWindow::showNewsPage() {
     stackedWidget->setCurrentIndex(3);
@@ -396,60 +410,36 @@ void MainWindow::paintEvent(QPaintEvent *event)
     painter.setPen(Qt::NoPen);
     painter.drawRect(rect());
 
-    QMainWindow::paintEvent(event);
+   QMainWindow::paintEvent(event);
 }
 
 
 
-void MainWindow::handleInstallRequest(const QString &featureName) {
-    QString path = QCoreApplication::applicationDirPath() + "/json/requests.json";
+void MainWindow::handleInstallRequest(const QString &id, const QString &name) {
+    QUrl url("http://localhost:8080/install");
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-    QFile file(path);
-    QJsonArray requestArray;
+    QJsonObject json;
+    json["id"] = id;
+    json["timestamp"] = QDateTime::currentDateTime().toString(Qt::ISODate);
+    json["status"] = "pending";
 
-    if (file.exists() && file.open(QIODevice::ReadOnly)) {
-        QByteArray data = file.readAll();
-        file.close();
+    QJsonDocument doc(json);
+    QByteArray postData = doc.toJson();
 
-        QJsonParseError error;
-        QJsonDocument doc = QJsonDocument::fromJson(data, &error);
-        if (error.error == QJsonParseError::NoError && doc.isArray()) {
-            requestArray = doc.array();
-        }
-    }
+    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+    QNetworkReply *reply = manager->post(request, postData);
 
-    bool featurefound = false;
-    for (const QJsonValue &val : requestArray) {
-        QJsonObject reqObj = val.toObject();
-        if (reqObj.contains("name") && reqObj.value("name").toString() == featureName) {
-            featurefound = true;
-            break;
-        }
-    }
-
-    if(!featurefound){
-        // Add new item to array
-        QJsonObject newRequest;
-        newRequest["name"] = featureName;
-        newRequest["timestamp"] = QDateTime::currentDateTime().toString(Qt::ISODate);
-        newRequest["status"] = "pending";
-        requestArray.append(newRequest);
-
-        // Write back to file
-        if (file.open(QIODevice::WriteOnly)) {
-            QJsonDocument saveDoc(requestArray);
-            file.write(saveDoc.toJson());
-            file.close();
+    connect(reply, &QNetworkReply::finished, this, [this, reply, id, name]() {
+        if (reply->error() == QNetworkReply::NoError) {
             QMessageBox::information(this, "Feature Installing",
-                                     QString("The feature '%1' will be installed at next Boot.").arg(featureName));
+                                     QString("Feature '%1' sent for installation successfully.").arg(name));
         } else {
-            qWarning() << "Failed to open install_requests.json for writing.";
+            QMessageBox::warning(this, "Error",
+                                 QString("Failed to send feature '%1': %2").arg(id, reply->errorString()));
         }
-    }else{
-        QMessageBox::information(this, "Feature Installing",
-                                QString("The feature '%1' will be installed at next Boot.").arg(featureName));
-
-    }
-
+        reply->deleteLater();
+    });
 }
 
